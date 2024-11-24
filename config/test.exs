@@ -1,14 +1,14 @@
 import Config
 
 # Standalone mode
-config :nebulex_redis_adapter, NebulexRedisAdapter.TestCache.Standalone,
+config :nebulex_redis_adapter, Nebulex.Adapters.Redis.TestCache.Standalone,
   conn_opts: [
     host: "127.0.0.1",
     port: 6379
   ]
 
-# Cluster mode
-config :nebulex_redis_adapter, NebulexRedisAdapter.TestCache.ClientCluster,
+# Client-side cluster mode
+config :nebulex_redis_adapter, Nebulex.Adapters.Redis.TestCache.ClientSideCluster,
   mode: :client_side_cluster,
   client_side_cluster: [
     nodes: [
@@ -34,7 +34,7 @@ config :nebulex_redis_adapter, NebulexRedisAdapter.TestCache.ClientCluster,
   ]
 
 # Redis Cluster mode (with Redis >= 7)
-config :nebulex_redis_adapter, NebulexRedisAdapter.TestCache.RedisCluster,
+config :nebulex_redis_adapter, Nebulex.Adapters.Redis.TestCache.RedisCluster,
   mode: :redis_cluster,
   redis_cluster: [
     # Configuration endpoints
@@ -51,7 +51,7 @@ config :nebulex_redis_adapter, NebulexRedisAdapter.TestCache.RedisCluster,
   ]
 
 # Redis Cluster mode with errors
-config :nebulex_redis_adapter, NebulexRedisAdapter.TestCache.RedisClusterConnError,
+config :nebulex_redis_adapter, Nebulex.Adapters.Redis.TestCache.RedisClusterConnError,
   mode: :redis_cluster,
   pool_size: 2,
   redis_cluster: [
