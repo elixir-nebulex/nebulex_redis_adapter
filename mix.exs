@@ -1,32 +1,32 @@
-defmodule NebulexRedisAdapter.MixProject do
+defmodule Nebulex.Adapters.Redis.MixProject do
   use Mix.Project
 
-  @source_url "https://github.com/cabol/nebulex_redis_adapter"
-  @version "2.4.2"
-  @nbx_tag "2.6.4"
-  @nbx_vsn "2.6"
+  @source_url "http://github.com/elixir-nebulex/nebulex_redis_adapter"
+  @version "3.0.0-rc.1"
+  @nbx_tag "3.0.0-rc.1"
+  @nbx_vsn "3.0.0-rc.1"
 
   def project do
     [
       app: :nebulex_redis_adapter,
       version: @version,
-      elixir: "~> 1.12",
+      elixir: "~> 1.15",
       elixirc_paths: elixirc_paths(Mix.env()),
       aliases: aliases(),
       deps: deps(),
 
       # Docs
-      name: "NebulexRedisAdapter",
+      name: "Nebulex.Adapters.Redis",
       docs: docs(),
 
       # Testing
       test_coverage: [tool: ExCoveralls],
       preferred_cli_env: [
-        check: :test,
         coveralls: :test,
         "coveralls.detail": :test,
         "coveralls.post": :test,
-        "coveralls.html": :test
+        "coveralls.html": :test,
+        "test.ci": :test
       ],
 
       # Dialyzer
@@ -52,28 +52,29 @@ defmodule NebulexRedisAdapter.MixProject do
       nebulex_dep(),
       {:redix, "~> 1.5"},
       {:nimble_options, "~> 0.5 or ~> 1.0"},
+      {:telemetry, "~> 0.4 or ~> 1.0"},
       {:crc, "~> 0.10", optional: true},
-      {:jchash, "~> 0.1", optional: true},
-      {:telemetry, "~> 0.4 or ~> 1.0", optional: true},
+      {:ex_hash_ring, "~> 6.0", optional: true},
 
       # Test & Code Analysis
       {:excoveralls, "~> 0.18", only: :test},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
-      {:mimic, "~> 1.9", only: :test},
+      {:mimic, "~> 1.11", only: :test},
+      {:stream_data, "~> 1.2", only: [:dev, :test]},
 
       # Benchmark Test
-      {:benchee, "~> 1.3", only: :test},
+      {:benchee, "~> 1.4", only: :test},
       {:benchee_html, "~> 1.0", only: :test},
 
       # Docs
-      {:ex_doc, "~> 0.34", only: [:dev, :test], runtime: false}
+      {:ex_doc, "~> 0.37", only: [:dev, :test], runtime: false}
     ]
   end
 
   defp nebulex_dep do
     if path = System.get_env("NEBULEX_PATH") do
-      {:nebulex, "~> #{@nbx_tag}", path: path}
+      {:nebulex, path: path}
     else
       {:nebulex, "~> #{@nbx_vsn}"}
     end
@@ -83,9 +84,10 @@ defmodule NebulexRedisAdapter.MixProject do
     [
       "nbx.setup": [
         "cmd rm -rf nebulex",
-        "cmd git clone --depth 1 --branch v#{@nbx_tag} https://github.com/cabol/nebulex"
+        "cmd git clone --depth 1 --branch v#{@nbx_tag} http://github.com/elixir-nebulex/nebulex"
       ],
-      check: [
+      "test.ci": [
+        "deps.unlock --check-unused",
         "compile --warnings-as-errors",
         "format --check-formatted",
         "credo --strict",
@@ -100,13 +102,14 @@ defmodule NebulexRedisAdapter.MixProject do
       name: :nebulex_redis_adapter,
       maintainers: ["Carlos Bolanos"],
       licenses: ["MIT"],
-      links: %{"GitHub" => @source_url}
+      links: %{"GitHub" => @source_url},
+      files: ~w(lib .formatter.exs mix.exs README* CHANGELOG* LICENSE*)
     ]
   end
 
   defp docs do
     [
-      main: "NebulexRedisAdapter",
+      main: "Nebulex.Adapters.Redis",
       source_ref: "v#{@version}",
       canonical: "http://hexdocs.pm/nebulex_redis_adapter",
       source_url: @source_url
@@ -115,7 +118,7 @@ defmodule NebulexRedisAdapter.MixProject do
 
   defp dialyzer do
     [
-      plt_add_apps: [:nebulex, :crc, :jchash],
+      plt_add_apps: [:nebulex],
       plt_file: {:no_warn, "priv/plts/" <> plt_file_name()},
       flags: [
         :unmatched_returns,

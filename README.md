@@ -1,23 +1,32 @@
-# NebulexRedisAdapter
+# Nebulex.Adapters.Redis
 > Nebulex adapter for Redis (including [Redis Cluster][redis_cluster] support).
 
-![CI](https://github.com/cabol/nebulex_redis_adapter/workflows/CI/badge.svg)
-[![Coverage Status](https://coveralls.io/repos/github/cabol/nebulex_redis_adapter/badge.svg?branch=master)](https://coveralls.io/github/cabol/nebulex_redis_adapter?branch=master)
-[![Hex Version](https://img.shields.io/hexpm/v/nebulex_redis_adapter.svg)](https://hex.pm/packages/nebulex_redis_adapter)
-[![Docs](https://img.shields.io/badge/docs-hexpm-blue.svg)](https://hexdocs.pm/nebulex_redis_adapter)
+![CI](http://github.com/elixir-nebulex/nebulex_redis_adapter/workflows/CI/badge.svg)
+[![Codecov](http://codecov.io/gh/elixir-nebulex/nebulex_redis_adapter/graph/badge.svg)](http://codecov.io/gh/elixir-nebulex/nebulex_redis_adapter/graph/badge.svg)
+[![Hex.pm](http://img.shields.io/hexpm/v/nebulex_redis_adapter.svg)](http://hex.pm/packages/nebulex_redis_adapter)
+[![Documentation](http://img.shields.io/badge/Documentation-ff69b4)](http://hexdocs.pm/nebulex_redis_adapter)
 
-This adapter uses [Redix](https://github.com/whatyouhide/redix); a Redis driver
+[redis_cluster]: http://redis.io/topics/cluster-tutorial
+
+## About
+
+This adapter uses [Redix](http://github.com/whatyouhide/redix); a Redis driver
 for Elixir.
 
 The adapter supports different configurations modes which are explained in the
 next sections.
 
-See also [online documentation][nbx_redis_adapter]
-and [Redis cache example][nbx_redis_example].
+---
 
-[nbx_redis_adapter]: http://hexdocs.pm/nebulex_redis_adapter/NebulexRedisAdapter.html
-[nbx_redis_example]: https://github.com/cabol/nebulex_examples/tree/master/redis_cache
-[redis_cluster]: https://redis.io/topics/cluster-tutorial
+> [!NOTE]
+>
+> This README refers to the main branch of `nebulex_redis_adapter`,
+> not the latest released version on Hex. Please reference the
+> [official documentation][docs] for the latest stable release.
+
+[docs-lsr]: http://hexdocs.pm/nebulex/NebulexRedisAdapter.html
+
+---
 
 ## Installation
 
@@ -26,9 +35,9 @@ Add `:nebulex_redis_adapter` to your list of dependencies in `mix.exs`:
 ```elixir
 defp deps do
   [
-    {:nebulex_redis_adapter, "~> 2.3"},
-    {:crc, "~> 0.10"},    #=> Needed when using Redis Cluster
-    {:jchash, "~> 0.1.4"} #=> Needed when using consistent-hashing
+    {:nebulex_redis_adapter, "~> 3.0.0-rc.1"},
+    {:crc, "~> 0.10"},        #=> Needed when using `:redis_cluster` mode
+    {:ex_hash_ring, "~> 6.0"} #=> Needed when using `:client_side_cluster` mode
   ]
 end
 ```
@@ -38,8 +47,8 @@ needed ones. For example:
 
   * `:crc` - Required when using the adapter in mode `:redis_cluster`.
     See [Redis Cluster][redis_cluster].
-  * `:jchash` - Required if you want to use consistent-hashing when using the
-    adapter in mode `:client_side_cluster`.
+  * `:ex_hash_ring` - Required when using the adapter in mode
+    `:client_side_cluster`.
 
 Then run `mix deps.get` to fetch the dependencies.
 
@@ -51,7 +60,7 @@ After installing, we can define our cache to use Redis adapter as follows:
 defmodule MyApp.RedisCache do
   use Nebulex.Cache,
     otp_app: :my_app,
-    adapter: NebulexRedisAdapter
+    adapter: Nebulex.Adapters.Redis
 end
 ```
 
@@ -69,15 +78,19 @@ config :my_app, MyApp.RedisCache,
 
 Since this adapter is implemented by means of `Redix`, it inherits the same
 options, including regular Redis options and connection options as well. For
-more information about the options, please check out `NebulexRedisAdapter`
-module and also [Redix](https://github.com/whatyouhide/redix).
+more information about the options, please check out `Nebulex.Adapters.Redis`
+module and also [Redix](http://github.com/whatyouhide/redix).
 
-See also [Redis cache example][nbx_redis_example].
+See [online documentation][docs] and [Redis cache example][redis_example]
+for more information.
+
+[docs]: http://hexdocs.pm/nebulex_redis_adapter/Nebulex.Adapters.Redis.html
+[redis_example]: http://github.com/elixir-nebulex/nebulex_examples/tree/master/redis_cache
 
 ## Distributed Caching
 
 There are different ways to support distributed caching when using
-**NebulexRedisAdapter**.
+**Nebulex.Adapters.Redis**.
 
 ### Redis Cluster
 
@@ -95,7 +108,7 @@ Then we can define our cache which will use **Redis Cluster**:
 defmodule MyApp.RedisClusterCache do
   use Nebulex.Cache,
     otp_app: :my_app,
-    adapter: NebulexRedisAdapter
+    adapter: Nebulex.Adapters.Redis
 end
 ```
 
@@ -127,12 +140,12 @@ The pool of connections to the different master nodes is automatically
 configured by the adapter once it gets the cluster slots info.
 
 > This one could be the easiest and recommended way for distributed caching
-  using Redis and **NebulexRedisAdapter**.
+  using Redis and **Nebulex.Adapters.Redis**.
 
-### Client-side Cluster based on Sharding
+### Client-side Cluster
 
-**NebulexRedisAdapter** also brings with a simple client-side cluster
-implementation based on Sharding distribution model.
+**Nebulex.Adapters.Redis** also brings with a simple client-side cluster
+implementation based on sharding distribution model.
 
 We define our cache normally:
 
@@ -140,7 +153,7 @@ We define our cache normally:
 defmodule MyApp.ClusteredCache do
   use Nebulex.Cache,
     otp_app: :my_app,
-    adapter: NebulexRedisAdapter
+    adapter: Nebulex.Adapters.Redis
 end
 ```
 
@@ -182,101 +195,41 @@ config :my_app, MyApp.ClusteredCache,
   ]
 ```
 
-By default, the adapter uses `NebulexRedisAdapter.ClientCluster.Keyslot` for the
-keyslot. Besides, if `:jchash` is defined as dependency, the adapter will use
-consistent-hashing automatically.
-
-> **NOTE:** It is highly recommended to define the `:jchash` dependency
-  when using the adapter in `:client_side_cluster` mode.
-
-However, you can also provide your own implementation by implementing the
-`Nebulex.Adapter.Keyslot` and set it into the `:keyslot` option. For example:
-
-```elixir
-defmodule MyApp.ClusteredCache.Keyslot do
-  use Nebulex.Adapter.Keyslot
-
-  @impl true
-  def hash_slot(key, range) do
-    # your implementation goes here
-  end
-end
-```
-
-And the config:
-
-```elixir
-config :my_app, MyApp.ClusteredCache,
-  # Enable client-side cluster mode
-  mode: :client_side_cluster,
-
-  client_side_cluster: [
-    # Provided Keyslot implementation
-    keyslot: MyApp.ClusteredCache.Keyslot,
-
-    # Nodes config (each node has its own options)
-    nodes: [
-      ...
-    ]
-  ]
-```
-
-### Using `Nebulex.Adapters.Partitioned`
-
-Another simple option is to use the `Nebulex.Adapters.Partitioned` and set as
-local cache the `NebulexRedisAdapter`. The idea here is each Elixir node running
-the distributed cache (`Nebulex.Adapters.Partitioned`) will have as local
-backend or cache a Redis instance (handled by `NebulexRedisAdapter`).
-
-
-This example shows how the setup a distributed cache using
-`Nebulex.Adapters.Partitioned` and `NebulexRedisAdapter`:
-
-```elixir
-defmodule MyApp.DistributedCache do
-  use Nebulex.Cache,
-    otp_app: :my_app,
-    adapter: Nebulex.Adapters.Partitioned,
-    primary_storage_adapter: NebulexRedisAdapter
-end
-```
-
 ### Using a Redis Proxy
 
 The other option is to use a proxy, like [Envoy proxy][envoy] or
 [Twemproxy][twemproxy] on top of Redis. In this case, the proxy does the
-distribution work, and from the adparter's side (**NebulexRedisAdapter**),
+distribution work, and from the adparter's side (**Nebulex.Adapters.Redis**),
 it would be only configuration. Instead of connect the adapter against the
 Redis nodes, we connect it against the proxy nodes, this means, in the config,
 we setup the pool with the host and port pointing to the proxy.
 
-[envoy]: https://www.envoyproxy.io/
-[twemproxy]: https://github.com/twitter/twemproxy
+[envoy]: http://www.envoyproxy.io/
+[twemproxy]: http://github.com/twitter/twemproxy
 
-## Running Redis commands and/or pipelines
+## Using the adapter as a Redis client
 
-Since `NebulexRedisAdapter` works on top of `Redix` and provides features like
-connection pools and "Redis Cluster" support, it may be seen also as a sort of
-Redis client, but it is meant to be used mainly with the Nebulex cache API.
-However, Redis API is quite extensive and there are a lot of useful commands
-we may want to run taking advantage of the `NebulexRedisAdapter` features.
-Therefore, the adapter injects two additional/extended functions to the
-defined cache: `command!/2` and `pipeline!/2`.
+Since the Redis adapter works on top of `Redix` and provides features like
+connection pools, "Redis Cluster", etc., it may also work as a Redis client.
+The Redis API is quite extensive, and there are many useful commands we may
+want to run, leveraging the Redis adapter features. Therefore, the adapter
+provides additional functions to do so.
 
 ```elixir
-iex> MyCache.command!(["LPUSH", "mylist", "world"], key: "mylist")
+iex> conn = MyCache.fetch_conn!()
+iex> Redix.command!(conn, ["LPUSH", "mylist", "world"])
 1
-iex> MyCache.command!(["LPUSH", "mylist", "hello"], key: "mylist")
+iex> Redix.command!(conn, ["LPUSH", "mylist", "hello"])
 2
-iex> MyCache.command!(["LRANGE", "mylist", "0", "-1"], key: "mylist")
+iex> Redix.command!(conn, ["LRANGE", "mylist", "0", "-1"])
 ["hello", "world"]
 
-iex> [
+iex> conn = MyCache.fetch_conn!(key: "mylist")
+iex> Redix.pipeline!(conn, [
 ...>   ["LPUSH", "mylist", "world"],
 ...>   ["LPUSH", "mylist", "hello"],
 ...>   ["LRANGE", "mylist", "0", "-1"]
-...> ]
-...> |> cache.pipeline!(key: "mylist")
+...> ])
 [1, 2, ["hello", "world"]]
 ```
 
@@ -287,8 +240,8 @@ you have to pass the cache name explicitly.
 
 ## Testing
 
-To run the **NebulexRedisAdapter** tests you will have to have Redis running
-locally. **NebulexRedisAdapter** requires a complex setup for running tests
+To run the **Nebulex.Adapters.Redis** tests you will have to have Redis running
+locally. **Nebulex.Adapters.Redis** requires a complex setup for running tests
 (since it needs a few instances running, for standalone, cluster and Redis
 Cluster). For this reason, there is a [docker-compose.yml](docker-compose.yml)
 file in the repo so that you can use [Docker][docker] and
@@ -299,10 +252,10 @@ with just one command. Make sure you have Docker installed and then just run:
 $ docker-compose up
 ```
 
-[docker]: https://www.docker.com/
-[docker_compose]: https://docs.docker.com/compose/
+[docker]: http://www.docker.com/
+[docker_compose]: http://docs.docker.com/compose/
 
-Since `NebulexRedisAdapter` uses the support modules and shared tests
+Since `Nebulex.Adapters.Redis` uses the support modules and shared tests
 from `Nebulex` and by default its test folder is not included in the Hex
 dependency, the following steps are required for running the tests.
 
@@ -342,7 +295,7 @@ You will find the coverage report within `cover/excoveralls.html`.
 
 ## Benchmarks
 
-Benchmarks were added using [benchee](https://github.com/PragTob/benchee);
+Benchmarks were added using [benchee](http://github.com/PragTob/benchee);
 to learn more, see the [benchmarks](./benchmarks) directory.
 
 To run the benchmarks:
@@ -357,20 +310,20 @@ $ MIX_ENV=test mix run benchmarks/benchmark.exs
 
 Contributions to Nebulex are very welcome and appreciated!
 
-Use the [issue tracker](https://github.com/cabol/nebulex_redis_adapter/issues)
+Use the [issue tracker](http://github.com/elixir-nebulex/nebulex_redis_adapter/issues)
 for bug reports or feature requests. Open a
-[pull request](https://github.com/cabol/nebulex_redis_adapter/pulls)
+[pull request](http://github.com/elixir-nebulex/nebulex_redis_adapter/pulls)
 when you are ready to contribute.
 
 When submitting a pull request you should not update the [CHANGELOG.md](CHANGELOG.md),
 and also make sure you test your changes thoroughly, include unit tests
 alongside new or changed code.
 
-Before to submit a PR it is highly recommended to run `mix check` and ensure
+Before to submit a PR it is highly recommended to run `mix test.ci` and ensure
 all checks run successfully.
 
 ## Copyright and License
 
 Copyright (c) 2018, Carlos Bolaños.
 
-NebulexRedisAdapter source code is licensed under the [MIT License](LICENSE).
+Nebulex.Adapters.Redis source code is licensed under the [MIT License](LICENSE).

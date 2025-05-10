@@ -1,8 +1,10 @@
 {
   "skip_files": [
-    "lib/nebulex_redis_adapter/exceptions.ex",
-    "lib/nebulex_redis_adapter/helpers.ex",
-    "lib/nebulex_redis_adapter/serializer.ex",
+    "lib/nebulex/adapters/redis/helpers.ex",
+    "lib/nebulex/adapters/redis/serializer.ex",
+    "lib/nebulex/adapters/redis/serializer/serializable.ex",
+    "lib/nebulex/adapters/redis/options.ex",
+    "lib/nebulex/adapters/redis/error_formatter.ex",
     "test/*"
   ],
   "coverage_options": {

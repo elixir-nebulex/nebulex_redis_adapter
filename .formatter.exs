@@ -5,6 +5,7 @@ locals_without_parens = [
 ]
 
 [
+  import_deps: [:nebulex],
   inputs: ["{mix,.formatter}.exs", "{config,lib,test}/**/*.{ex,exs}"],
   line_length: 100,
   locals_without_parens: locals_without_parens,
