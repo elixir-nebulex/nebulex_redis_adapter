@@ -7,11 +7,11 @@
 [![Documentation](http://img.shields.io/badge/Documentation-ff69b4)](http://hexdocs.pm/nebulex_redis_adapter)
 
 [redis_cluster]: http://redis.io/topics/cluster-tutorial
+[redix]: http://github.com/whatyouhide/redix
 
 ## About
 
-This adapter uses [Redix](http://github.com/whatyouhide/redix); a Redis driver
-for Elixir.
+This adapter uses [Redix][redix]; a Redis driver for Elixir.
 
 The adapter supports different configurations modes which are explained in the
 next sections.
@@ -79,7 +79,7 @@ config :my_app, MyApp.RedisCache,
 Since this adapter is implemented by means of `Redix`, it inherits the same
 options, including regular Redis options and connection options as well. For
 more information about the options, please check out `Nebulex.Adapters.Redis`
-module and also [Redix](http://github.com/whatyouhide/redix).
+module and also [Redix][redix].
 
 See [online documentation][docs] and [Redis cache example][redis_example]
 for more information.
@@ -233,10 +233,10 @@ iex> Redix.pipeline!(conn, [
 [1, 2, ["hello", "world"]]
 ```
 
-**NOTE:** The `key` is required when used the adapter in mode
-`:client_side_cluster` or `:redis_cluster`. For `:standalone` is not required
-(optional). And the `name` is in case you are using a dynamic cache and
-you have to pass the cache name explicitly.
+> [!NOTE]
+>
+> The `:name` may be needed when using dynamic caches, and the `:key` is
+> required when using the `:redis_cluster` or `:client_side_cluster` mode.
 
 ## Testing
 

@@ -4,6 +4,45 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v3.0.0-rc.1](https://github.com/elixir-nebulex/nebulex_redis_adapter/tree/v3.0.0-rc.1) (2025-05-10)
+> [Full Changelog](https://github.com/elixir-nebulex/nebulex_redis_adapter/compare/v2.4.2...v3.0.0-rc.1)
+
+### Enhancements
+
+- [Nebulex.Adapters.Redis] Upgraded the Redis adapter to Nebulex v3.
+- [Nebulex.Adapters.Redis] The adapter supports the `:timeout` option from
+  `Nebulex.Cache`.
+- [Nebulex.Adapters.Redis] The `:client_side_cluster` mode uses the
+  [`ExHashRing`](ex_hash_ring) library internally for handling the nodes.
+- [Nebulex.Adapters.Redis] Added extended callbacks `fetch_conn/0,1` and
+  `fetch_conn!/0,1` - useful for performing Redis commands (when using the
+  adapter as a Redis client).
+- [Nebulex.Adapters.Redis] Added extended callbacks `encode_key/1,2`,
+  `decode_key/1,2`, `encode_value/1,2`, and `decode_value/1,2` - useful for
+  encoding and decoding keys and values according to the adapter.
+
+[ex_hash_ring]: https://github.com/discord/ex_hash_ring
+
+### Backwards incompatible changes
+
+- [Nebulex.Adapters.Redis] Adapter module has been renamed from
+  `NebulexRedisAdapter` to `Nebulex.Adapters.Redis`.
+- [Nebulex.Adapters.Redis] The option `:keyslot` when using `:redis_cluster`
+  mode no longer supports a module implementing the `Nebulex.Adapter.Keyslot`
+  behaviour. Please use an anonymous function that receives the key and the
+  range (16384 slots for Redis Cluster) as arguments and returns the hash slot
+  where perform the action to (e.g., `keyslot: &MyApp.hash_slot/2`).
+- [Nebulex.Adapters.Redis] The option `:keyslot` when using
+  `:client_side_cluster` mode is no longer supported.
+- [Nebulex.Adapters.Redis] The previous extended functions `command/1,2`,
+  `command!/1,2`, `pipeline/1,2`, and `pipeline!/1,2` were removed.
+  Please see the new ones: `fetch_conn/0,1` and `fetch_conn!/0,1`.
+
+### Closed issues
+
+- Upgrade the Redis adapter to Nebulex V3
+  [#65](https://github.com/elixir-nebulex/nebulex_redis_adapter/issues/65)
+
 ## [v2.4.2](https://github.com/cabol/nebulex_redis_adapter/tree/v2.4.2) (2024-11-01)
 
 [Full Changelog](https://github.com/cabol/nebulex_redis_adapter/compare/v2.4.1...v2.4.2)
