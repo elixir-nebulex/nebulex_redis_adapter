@@ -64,8 +64,8 @@ defmodule Nebulex.Adapters.Redis.MixProject do
       {:stream_data, "~> 1.2", only: [:dev, :test]},
 
       # Benchmark Test
-      {:benchee, "~> 1.4", only: :test},
-      {:benchee_html, "~> 1.0", only: :test},
+      {:benchee, "~> 1.4", only: [:dev, :test]},
+      {:benchee_html, "~> 1.0", only: [:dev, :test]},
 
       # Docs
       {:ex_doc, "~> 0.37", only: [:dev, :test], runtime: false}

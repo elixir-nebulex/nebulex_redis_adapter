@@ -22,9 +22,9 @@ next sections.
 >
 > This README refers to the main branch of `nebulex_redis_adapter`,
 > not the latest released version on Hex. Please reference the
-> [official documentation][docs] for the latest stable release.
+> [official documentation][docs-lsr] for the latest stable release.
 
-[docs-lsr]: http://hexdocs.pm/nebulex/NebulexRedisAdapter.html
+[docs-lsr]: http://hexdocs.pm/nebulex_redis_adapter/NebulexRedisAdapter.html
 
 ---
 
@@ -84,7 +84,7 @@ module and also [Redix][redix].
 See [online documentation][docs] and [Redis cache example][redis_example]
 for more information.
 
-[docs]: http://hexdocs.pm/nebulex_redis_adapter/Nebulex.Adapters.Redis.html
+[docs]: http://hexdocs.pm/nebulex_redis_adapter/3.0.0-rc.1/Nebulex.Adapters.Redis.html
 [redis_example]: http://github.com/elixir-nebulex/nebulex_examples/tree/master/redis_cache
 
 ## Distributed Caching
@@ -301,7 +301,7 @@ to learn more, see the [benchmarks](./benchmarks) directory.
 To run the benchmarks:
 
 ```
-$ MIX_ENV=test mix run benchmarks/benchmark.exs
+mix run benchmarks/benchmark.exs
 ```
 
 > Benchmarks use default Redis options (`host: "127.0.0.1", port: 6379`).

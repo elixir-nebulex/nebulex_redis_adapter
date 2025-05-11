@@ -1,9 +1,11 @@
 ## Benchmarks
 
+_ = Application.start(:telemetry)
+
 defmodule BenchCache do
   use Nebulex.Cache,
-      otp_app: :nebulex,
-      adapter: NebulexRedisAdapter
+    otp_app: :nebulex,
+    adapter: Nebulex.Adapters.Redis
 end
 
 # start caches
@@ -21,26 +23,23 @@ inputs = %{
 }
 
 benchmarks = %{
-  "get" => fn {cache, random} ->
-    cache.get(random)
+  "fetch" => fn {cache, random} ->
+    cache.fetch(random)
   end,
-  "get_all" => fn {cache, _random} ->
-    cache.get_all([1, 2, 3, 4, 5, 6, 7, 8, 9])
+  "put!" => fn {cache, random} ->
+    cache.put!(random, random)
   end,
-  "put" => fn {cache, random} ->
-    cache.put(random, random)
+  "put_new!" => fn {cache, random} ->
+    cache.put_new!(random, random)
   end,
-  "put_new" => fn {cache, random} ->
-    cache.put_new(random, random)
+  "replace!" => fn {cache, random} ->
+    cache.replace!(random, random)
   end,
-  "replace" => fn {cache, random} ->
-    cache.replace(random, random)
+  "put_all!" => fn {cache, _random} ->
+    cache.put_all!(bulk)
   end,
-  "put_all" => fn {cache, _random} ->
-    cache.put_all(bulk)
-  end,
-  "delete" => fn {cache, random} ->
-    cache.delete(random)
+  "delete!" => fn {cache, random} ->
+    cache.delete!(random)
   end,
   "take" => fn {cache, random} ->
     cache.take(random)
@@ -51,26 +50,29 @@ benchmarks = %{
   "ttl" => fn {cache, random} ->
     cache.ttl(random)
   end,
-  "expire" => fn {cache, random} ->
-    cache.expire(random, 1000)
+  "expire!" => fn {cache, random} ->
+    cache.expire!(random, 1000)
   end,
-  "incr" => fn {cache, _random} ->
-    cache.incr(:counter, 1)
+  "incr!" => fn {cache, _random} ->
+    cache.incr!(:counter, 1)
   end,
-  "update" => fn {cache, random} ->
-    cache.update(random, 1, &Kernel.+(&1, 1))
+  "update!" => fn {cache, random} ->
+    cache.update!(random, 1, &Kernel.+(&1, 1))
   end,
-  "get_and_update" => fn {cache, random} ->
-    cache.get_and_update(random, fn
+  "get_and_update!" => fn {cache, random} ->
+    cache.get_and_update!(random, fn
       nil -> {nil, 1}
       val -> {val, val * 2}
     end)
   end,
-  "all" => fn {cache, _random} ->
-    cache.all()
+  "get_all!" => fn {cache, _random} ->
+    cache.get_all!(in: [1, 2, 3, 4, 5, 6, 7, 8, 9])
   end,
-  "count_all" => fn {cache, _random} ->
-    cache.count_all()
+  "count_all!" => fn {cache, _random} ->
+    cache.count_all!()
+  end,
+  "delete_all!" => fn {cache, _random} ->
+    cache.delete_all!(in: [1, 2, 3])
   end
 }
 
