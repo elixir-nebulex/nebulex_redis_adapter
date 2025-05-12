@@ -2,8 +2,7 @@ defmodule Nebulex.Adapters.Redis.ClientSideCluster.NodeSupervisor do
   @moduledoc false
   use Supervisor
 
-  alias ExHashRing.{Configuration, Ring}
-  alias Nebulex.Adapters.Redis.ClientSideCluster.PoolSupervisor
+  alias Nebulex.Adapters.Redis.ClientSideCluster.{HashRing, PoolSupervisor}
 
   ## API
 
@@ -26,10 +25,10 @@ defmodule Nebulex.Adapters.Redis.ClientSideCluster.NodeSupervisor do
 
         {replicas, node_opts} =
           Keyword.pop_lazy(node_opts, :ch_ring_replicas, fn ->
-            Configuration.get_replicas()
+            HashRing.get_replicas()
           end)
 
-        {:ok, _} = Ring.add_node(ring, node_name, replicas)
+        _ignore = HashRing.add_node(ring, node_name, replicas)
 
         node_opts =
           node_opts
