@@ -1,6 +1,8 @@
-defmodule Nebulex.Adapters.Redis.ClusterCacheTest do
+defmodule Nebulex.Adapters.Redis.ClusterQueryableTest do
   use ExUnit.Case, async: false
-  @moduletag :nebulex_test
+
+  @moduletag :redis_cluster
+  @moduletag :cluster_queryable_test
   @moduletag capture_log: true
 
   # Inherited tests from Nebulex

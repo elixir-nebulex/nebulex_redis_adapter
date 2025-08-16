@@ -19,11 +19,14 @@ jobs:
       matrix:
         include:
           - elixir: 1.18.x
-            otp: 27.x
+            otp: 28.x
             os: 'ubuntu-latest'
             lint: true
             coverage: true
             dialyzer: true
+          - elixir: 1.17.x
+            otp: 27.x
+            os: 'ubuntu-latest'
           - elixir: 1.15.x
             otp: 25.x
             os: 'ubuntu-latest'
@@ -94,13 +97,13 @@ jobs:
       - name: Run tests
         run: |
           epmd -daemon
-          mix test --exclude nebulex_test
+          mix test --exclude cluster_queryable_test --exclude redis_cluster
         if: ${{ !matrix.coverage }}
 
       - name: Run tests with coverage
         run: |
           epmd -daemon
-          mix coveralls.json --exclude nebulex_test
+          mix coveralls.json --exclude cluster_queryable_test
         if: ${{ matrix.coverage }}
 
       - name: Upload coverage reports to Codecov

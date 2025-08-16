@@ -1,4 +1,4 @@
-# Nebulex.Adapters.Redis
+# Nebulex.Adapters.Redis 🧱⚡
 > Nebulex adapter for Redis (including [Redis Cluster][redis_cluster] support).
 
 ![CI](http://github.com/elixir-nebulex/nebulex_redis_adapter/workflows/CI/badge.svg)
@@ -9,12 +9,12 @@
 [redis_cluster]: http://redis.io/topics/cluster-tutorial
 [redix]: http://github.com/whatyouhide/redix
 
-## About
+## 📖 About
 
-This adapter uses [Redix][redix]; a Redis driver for Elixir.
+This adapter uses [Redix][redix] - a Redis driver for Elixir.
 
-The adapter supports different configurations modes which are explained in the
-next sections.
+The adapter supports different configuration modes, which are explained in the
+following sections.
 
 ---
 
@@ -28,7 +28,7 @@ next sections.
 
 ---
 
-## Installation
+## 🚀 Installation
 
 Add `:nebulex_redis_adapter` to your list of dependencies in `mix.exs`:
 
@@ -42,19 +42,19 @@ defp deps do
 end
 ```
 
-The adapter dependencies are optional to give more flexibility and loading only
-needed ones. For example:
+The adapter dependencies are optional to provide more flexibility and load only
+the needed ones. For example:
 
-  * `:crc` - Required when using the adapter in mode `:redis_cluster`.
-    See [Redis Cluster][redis_cluster].
-  * `:ex_hash_ring` - Required when using the adapter in mode
-    `:client_side_cluster`.
+* `:crc` - Required when using the adapter in `:redis_cluster` mode.
+  See [Redis Cluster][redis_cluster].
+* `:ex_hash_ring` - Required when using the adapter in
+  `:client_side_cluster` mode.
 
 Then run `mix deps.get` to fetch the dependencies.
 
-## Usage
+## 💻 Usage
 
-After installing, we can define our cache to use Redis adapter as follows:
+After installing, you can define your cache to use the Redis adapter as follows:
 
 ```elixir
 defmodule MyApp.RedisCache do
@@ -64,7 +64,7 @@ defmodule MyApp.RedisCache do
 end
 ```
 
-The rest of Redis configuration is set in our application environment, usually
+The Redis configuration is set in your application environment, usually
 defined in your `config/config.exs`:
 
 ```elixir
@@ -76,33 +76,33 @@ config :my_app, MyApp.RedisCache,
   ]
 ```
 
-Since this adapter is implemented by means of `Redix`, it inherits the same
-options, including regular Redis options and connection options as well. For
-more information about the options, please check out `Nebulex.Adapters.Redis`
-module and also [Redix][redix].
+Since this adapter is implemented using `Redix`, it inherits the same
+options, including regular Redis options and connection options. For
+more information about the options, please check out the
+`Nebulex.Adapters.Redis` module and also [Redix][redix].
 
-See [online documentation][docs] and [Redis cache example][redis_example]
+See the [online documentation][docs] and [Redis cache example][redis_example]
 for more information.
 
 [docs]: http://hexdocs.pm/nebulex_redis_adapter/3.0.0-rc.1/Nebulex.Adapters.Redis.html
 [redis_example]: http://github.com/elixir-nebulex/nebulex_examples/tree/master/redis_cache
 
-## Distributed Caching
+## 🌐 Distributed Caching
 
 There are different ways to support distributed caching when using
 **Nebulex.Adapters.Redis**.
 
-### Redis Cluster
+### 🏗️ Redis Cluster
 
 [Redis Cluster][redis_cluster] is a built-in feature in Redis since version 3,
-and it may be the most convenient and recommendable way to set up Redis in a
-cluster and have a distributed cache storage out-of-box. This adapter provides
+and it may be the most convenient and recommended way to set up Redis in a
+cluster and have distributed cache storage out-of-the-box. This adapter provides
 the `:redis_cluster` mode to set up **Redis Cluster** from the client-side
-automatically and be able to use it transparently.
+automatically and use it transparently.
 
-First of all, ensure you have **Redis Cluster** configured and running.
+First, ensure you have **Redis Cluster** configured and running.
 
-Then we can define our cache which will use **Redis Cluster**:
+Then you can define your cache which will use **Redis Cluster**:
 
 ```elixir
 defmodule MyApp.RedisClusterCache do
@@ -112,7 +112,7 @@ defmodule MyApp.RedisClusterCache do
 end
 ```
 
-The config:
+The configuration:
 
 ```elixir
 config :my_app, MyApp.RedisClusterCache,
@@ -129,7 +129,7 @@ config :my_app, MyApp.RedisClusterCache,
       endpoint1_conn_opts: [
         host: "127.0.0.1",
         port: 6379,
-        # Add the password if 'requirepass' is on
+        # Add the password if 'requirepass' is enabled
         password: "password"
       ]
     ]
@@ -137,17 +137,17 @@ config :my_app, MyApp.RedisClusterCache,
 ```
 
 The pool of connections to the different master nodes is automatically
-configured by the adapter once it gets the cluster slots info.
+configured by the adapter once it gets the cluster slots information.
 
-> This one could be the easiest and recommended way for distributed caching
+> This could be the easiest and recommended way for distributed caching
   using Redis and **Nebulex.Adapters.Redis**.
 
-### Client-side Cluster
+### 🔗 Client-side Cluster
 
-**Nebulex.Adapters.Redis** also brings with a simple client-side cluster
-implementation based on sharding distribution model.
+**Nebulex.Adapters.Redis** also provides a simple client-side cluster
+implementation based on a sharding distribution model.
 
-We define our cache normally:
+Define your cache normally:
 
 ```elixir
 defmodule MyApp.ClusteredCache do
@@ -157,7 +157,7 @@ defmodule MyApp.ClusteredCache do
 end
 ```
 
-The config:
+The configuration:
 
 ```elixir
 config :my_app, MyApp.ClusteredCache,
@@ -190,28 +190,28 @@ config :my_app, MyApp.ClusteredCache,
           port: 9003
         ]
       ]
-      # Maybe more ...
+      # Maybe more nodes...
     ]
   ]
 ```
 
-### Using a Redis Proxy
+### 🌉 Using a Redis Proxy
 
-The other option is to use a proxy, like [Envoy proxy][envoy] or
-[Twemproxy][twemproxy] on top of Redis. In this case, the proxy does the
-distribution work, and from the adparter's side (**Nebulex.Adapters.Redis**),
-it would be only configuration. Instead of connect the adapter against the
-Redis nodes, we connect it against the proxy nodes, this means, in the config,
-we setup the pool with the host and port pointing to the proxy.
+Another option is to use a proxy, such as [Envoy proxy][envoy] or
+[Twemproxy][twemproxy], on top of Redis. In this case, the proxy handles the
+distribution work, and from the adapter's side (**Nebulex.Adapters.Redis**),
+it would only require configuration. Instead of connecting the adapter to the
+Redis nodes, you connect it to the proxy nodes. This means in the config,
+you set up the pool with the host and port pointing to the proxy.
 
 [envoy]: http://www.envoyproxy.io/
 [twemproxy]: http://github.com/twitter/twemproxy
 
-## Using the adapter as a Redis client
+## 🔧 Using the Adapter as a Redis Client
 
 Since the Redis adapter works on top of `Redix` and provides features like
-connection pools, "Redis Cluster", etc., it may also work as a Redis client.
-The Redis API is quite extensive, and there are many useful commands we may
+connection pools, "Redis Cluster", etc., it can also work as a Redis client.
+The Redis API is quite extensive, and there are many useful commands you may
 want to run, leveraging the Redis adapter features. Therefore, the adapter
 provides additional functions to do so.
 
@@ -238,17 +238,17 @@ iex> Redix.pipeline!(conn, [
 > The `:name` may be needed when using dynamic caches, and the `:key` is
 > required when using the `:redis_cluster` or `:client_side_cluster` mode.
 
-## Testing
+## 🧪 Testing
 
-To run the **Nebulex.Adapters.Redis** tests you will have to have Redis running
+To run the **Nebulex.Adapters.Redis** tests, you will need to have Redis running
 locally. **Nebulex.Adapters.Redis** requires a complex setup for running tests
-(since it needs a few instances running, for standalone, cluster and Redis
-Cluster). For this reason, there is a [docker-compose.yml](docker-compose.yml)
-file in the repo so that you can use [Docker][docker] and
-[docker-compose][docker_compose] to spin up all the necessary Redis instances
-with just one command. Make sure you have Docker installed and then just run:
+(since it needs several instances running for standalone, cluster, and Redis
+Cluster modes). For this reason, there is a [docker-compose.yml](docker-compose.yml)
+file in the repo so you can use [Docker][docker] and [docker-compose][docker_compose]
+to spin up all the necessary Redis instances with just one command. Make sure
+you have Docker installed and then just run:
 
-```
+```bash
 $ docker-compose up
 ```
 
@@ -259,54 +259,54 @@ Since `Nebulex.Adapters.Redis` uses the support modules and shared tests
 from `Nebulex` and by default its test folder is not included in the Hex
 dependency, the following steps are required for running the tests.
 
-First of all, make sure you set the environment variable `NEBULEX_PATH`
+First, make sure you set the environment variable `NEBULEX_PATH`
 to `nebulex`:
 
-```
+```bash
 export NEBULEX_PATH=nebulex
 ```
 
-Second, make sure you fetch `:nebulex` dependency directly from GtiHub
+Second, make sure you fetch the `:nebulex` dependency directly from GitHub
 by running:
 
-```
+```bash
 mix nbx.setup
 ```
 
-Third, fetch deps:
+Third, fetch the dependencies:
 
-```
+```bash
 mix deps.get
 ```
 
 Finally, you can run the tests:
 
-```
+```bash
 mix test
 ```
 
 Running tests with coverage:
 
-```
+```bash
 mix coveralls.html
 ```
 
 You will find the coverage report within `cover/excoveralls.html`.
 
-## Benchmarks
+## 📊 Benchmarks
 
 Benchmarks were added using [benchee](http://github.com/PragTob/benchee);
 to learn more, see the [benchmarks](./benchmarks) directory.
 
 To run the benchmarks:
 
-```
+```bash
 mix run benchmarks/benchmark.exs
 ```
 
 > Benchmarks use default Redis options (`host: "127.0.0.1", port: 6379`).
 
-## Contributing
+## 🤝 Contributing
 
 Contributions to Nebulex are very welcome and appreciated!
 
@@ -315,14 +315,14 @@ for bug reports or feature requests. Open a
 [pull request](http://github.com/elixir-nebulex/nebulex_redis_adapter/pulls)
 when you are ready to contribute.
 
-When submitting a pull request you should not update the [CHANGELOG.md](CHANGELOG.md),
-and also make sure you test your changes thoroughly, include unit tests
+When submitting a pull request, you should not update the [CHANGELOG.md](CHANGELOG.md),
+and also make sure you test your changes thoroughly, including unit tests
 alongside new or changed code.
 
-Before to submit a PR it is highly recommended to run `mix test.ci` and ensure
+Before submitting a PR, it is highly recommended to run `mix test.ci` and ensure
 all checks run successfully.
 
-## Copyright and License
+## 📄 Copyright and License
 
 Copyright (c) 2018, Carlos Bolaños.
 

@@ -1,5 +1,7 @@
 defmodule Nebulex.Adapters.Redis.ClusterTest do
   use ExUnit.Case, async: false
+
+  @moduletag :redis_cluster
   @moduletag capture_log: true
 
   use Mimic

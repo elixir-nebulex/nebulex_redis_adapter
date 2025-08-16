@@ -3,8 +3,8 @@ defmodule Nebulex.Adapters.Redis.MixProject do
 
   @source_url "http://github.com/elixir-nebulex/nebulex_redis_adapter"
   @version "3.0.0-rc.1"
-  @nbx_tag "3.0.0-rc.1"
-  @nbx_vsn "3.0.0-rc.1"
+  # @nbx_tag "3.0.0-rc.1"
+  # @nbx_vsn "3.0.0-rc.1"
 
   def project do
     [
@@ -76,7 +76,7 @@ defmodule Nebulex.Adapters.Redis.MixProject do
     if path = System.get_env("NEBULEX_PATH") do
       {:nebulex, path: path}
     else
-      {:nebulex, "~> #{@nbx_vsn}"}
+      {:nebulex, github: "elixir-nebulex/nebulex"}
     end
   end
 
@@ -84,7 +84,7 @@ defmodule Nebulex.Adapters.Redis.MixProject do
     [
       "nbx.setup": [
         "cmd rm -rf nebulex",
-        "cmd git clone --depth 1 --branch v#{@nbx_tag} http://github.com/elixir-nebulex/nebulex"
+        "cmd git clone --depth 1 --branch main http://github.com/elixir-nebulex/nebulex"
       ],
       "test.ci": [
         "deps.unlock --check-unused",
