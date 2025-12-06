@@ -34,9 +34,7 @@ defimpl Nebulex.Adapters.Redis.Serializer.Serializable, for: BitString do
   end
 
   def decode(data, _opts) do
-    if not is_nil(data) do
-      :erlang.binary_to_term(data)
-    end
+    :erlang.binary_to_term(data)
   rescue
     ArgumentError -> data
   end

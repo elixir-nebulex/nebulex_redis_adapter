@@ -48,21 +48,36 @@ defmodule Nebulex.Adapters.Redis do
           adapter: Nebulex.Adapters.Redis
       end
 
-  As you may notices, nothing has changed, it is defined the same as the
+  As you may notice, nothing has changed, it is defined the same as the
   standalone mode. The change is in the configuration:
 
       config :my_app, MyApp.RedisClusterCache,
         mode: :redis_cluster,
         redis_cluster: [
+          # Configuration endpoints
+          # The client connects to these endpoints to fetch cluster topology
+          # using "CLUSTER SHARDS" (Redis >= 7) or "CLUSTER SLOTS" (Redis < 7).
+          # Multiple endpoints can be provided for redundancy. The adapter will
+          # try each endpoint until it successfully retrieves the topology.
           configuration_endpoints: [
             endpoint1_conn_opts: [
               host: "127.0.0.1",
               port: 6379,
-              # Add the password if 'requirepass' is on
+              # Add the password if 'requirepass' is enabled
               password: "password"
             ],
-            ...
-          ]
+            endpoint2_conn_opts: [
+              host: "127.0.0.1",
+              port: 6380,
+              password: "password"
+            ]
+          ],
+
+          # Optional: Override master host addresses returned by the cluster.
+          # Useful when running Redis in Docker or behind NAT where the
+          # advertised addresses differ from the actual connection addresses.
+          # Defaults to `false`.
+          override_master_host: false
         ]
 
   ## Client-side Cluster
@@ -75,7 +90,7 @@ defmodule Nebulex.Adapters.Redis do
           adapter: Nebulex.Adapters.Redis
       end
 
-  The config:
+  The configuration:
 
       config :my_app, MyApp.ClusteredCache,
         mode: :client_side_cluster,
@@ -114,10 +129,10 @@ defmodule Nebulex.Adapters.Redis do
   Another option for "Redis Cluster" or the built-in "Client-side cluster" is
   using a proxy such as [Envoy proxy][envoy] or [Twemproxy][twemproxy] on top
   of Redis. In this case, the proxy does the distribution work, and from the
-  adparter's side (**Nebulex.Adapters.Redis**), it would be only configuration.
-  Instead of connect the adapter against the Redis nodes, we connect it against
-  the proxy nodes, this means, in the config, we setup the pool with the host
-  and port pointing to the proxy.
+  adapter's side (**Nebulex.Adapters.Redis**), it would be only configuration.
+  Instead of connecting the adapter against the Redis nodes, we connect it
+  against the proxy nodes, this means, in the configuration, we set up the
+  pool with the host and port pointing to the proxy.
 
   [envoy]: https://www.envoyproxy.io/
   [twemproxy]: https://github.com/twitter/twemproxy
@@ -148,13 +163,34 @@ defmodule Nebulex.Adapters.Redis do
 
   ## Query API
 
-  Since the queryable API is implemented by using `KEYS` command,
-  keep in mind the following caveats:
+  The queryable API is implemented using Redis `KEYS` command for pattern
+  matching and operations like `get_all`, `delete_all`, and `count_all`.
 
-    * Only keys can be queried.
+  > #### Performance Warning {: .warning}
+  >
+  > The `KEYS` command can cause performance issues in production environments
+  > because it blocks Redis while scanning all keys in the database. Consider
+  > the following:
+  >
+  >   * Avoid using pattern queries (`get_all("pattern*")`) in production with
+  >     large datasets.
+  >   * Prefer explicit key lists (`get_all(in: [key1, key2])`) when
+  >     possible.
+  >   * Use `stream/2` instead of `get_all/2` for large result sets to reduce
+  >     memory usage.
+  >
+  > This adapter currently uses the `KEYS` command. A refactoring to use
+  > `SCAN` (the Redis-recommended approach for production) is planned for
+  > the next release.
+
+  Keep in mind the following limitations:
+
+    * Only keys can be queried (not values or other attributes).
     * Only strings and predefined queries are allowed as query values.
+    * Pattern queries scan the entire keyspace.
 
-  See ["KEYS" command](https://redis.io/docs/latest/commands/keys/).
+  See ["KEYS" command](https://redis.io/docs/latest/commands/keys/) for
+  pattern syntax details.
 
   ### Examples
 
@@ -183,17 +219,23 @@ defmodule Nebulex.Adapters.Redis do
 
   ### Deleting/counting keys
 
-      iex> MyApp.RedisCache.delete_all!({:in, ["foo", "bar"]})
+      iex> MyApp.RedisCache.delete_all!(in: ["foo", "bar"])
       2
-      iex> MyApp.RedisCache.count_all!({:in, ["foo", "bar"]})
+      iex> MyApp.RedisCache.count_all!(in: ["foo", "bar"])
       2
 
   ## Transactions
 
-  > #### Transactions {: .info}
+  > #### Nebulex Transaction API {: .info}
   >
-  > Transaction support is not currently available in this adapter,
-  > but it is planned for future releases.
+  > The `Nebulex.Adapter.Transaction` behaviour (for multi-operation
+  > transactions via the `transaction/3` callback) is not currently implemented
+  > in this adapter, but it is planned for future releases.
+  >
+  > However, the adapter does use Redis transactions (MULTI/EXEC) internally
+  > to ensure atomicity for operations like `take/2`, `put_all/2`, and
+  > `update_counter/3`. These internal transactions are transparent to users
+  > and happen automatically when needed.
 
   ## Using the adapter as a Redis client
 
@@ -225,7 +267,7 @@ defmodule Nebulex.Adapters.Redis do
   `:key` is required:
 
       iex> {:ok, conn} = MyCache.fetch_conn(key: "mylist")
-      iex> Redix.pipeline!([
+      iex> Redix.pipeline!(conn, [
       ...>   ["LPUSH", "mylist", "hello"],
       ...>   ["LPUSH", "mylist", "world"],
       ...>   ["LRANGE", "mylist", "0", "-1"]
@@ -264,6 +306,42 @@ defmodule Nebulex.Adapters.Redis do
       "OK"
       iex> Redix.command!(conn, ["GET", key]) |> MyCache.decode_value()
       {:value, "value"}
+
+  ### Custom Serializers
+
+  By default, the adapter uses Erlang's term format (`:erlang.term_to_binary/2`)
+  for serialization, with strings being stored as-is. You can implement a
+  custom serializer by creating a module that implements the
+  `Nebulex.Adapters.Redis.Serializer` behaviour.
+
+  This is useful when you need:
+  - JSON serialization for interoperability with other systems.
+  - Custom compression algorithms.
+  - Different encoding strategies for keys vs values.
+  - Integration with external serialization libraries.
+
+  Example custom serializer using JSON:
+
+      defmodule MyApp.JSONSerializer do
+        @behaviour Nebulex.Adapters.Redis.Serializer
+
+        @impl true
+        def encode_key(key, _opts), do: JSON.encode!(key)
+
+        @impl true
+        def encode_value(value, _opts), do: JSON.encode!(value)
+
+        @impl true
+        def decode_key(key, _opts), do: JSON.decode!(key)
+
+        @impl true
+        def decode_value(value, _opts), do: JSON.decode!(value)
+      end
+
+  Then configure your cache to use the custom serializer:
+
+      config :my_app, MyApp.RedisCache,
+        serializer: MyApp.JSONSerializer
 
   ## Adapter-specific telemetry events for the `:redis_cluster` mode
 
@@ -457,7 +535,7 @@ defmodule Nebulex.Adapters.Redis do
     # Init the connections child spec according to the adapter mode
     {conn_child_spec, adapter_meta} = do_init(adapter_meta, opts)
 
-    # Supervisorr name
+    # Supervisor name
     sup_name = camelize_and_concat([name, Supervisor])
 
     # Prepare child spec

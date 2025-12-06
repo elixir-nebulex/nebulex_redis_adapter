@@ -1,7 +1,7 @@
 defmodule Nebulex.Adapters.Redis.MixProject do
   use Mix.Project
 
-  @source_url "http://github.com/elixir-nebulex/nebulex_redis_adapter"
+  @source_url "https://github.com/elixir-nebulex/nebulex_redis_adapter"
   @version "3.0.0-rc.1"
   # @nbx_tag "3.0.0-rc.1"
   # @nbx_vsn "3.0.0-rc.1"
@@ -21,13 +21,6 @@ defmodule Nebulex.Adapters.Redis.MixProject do
 
       # Testing
       test_coverage: [tool: ExCoveralls],
-      preferred_cli_env: [
-        coveralls: :test,
-        "coveralls.detail": :test,
-        "coveralls.post": :test,
-        "coveralls.html": :test,
-        "test.ci": :test
-      ],
 
       # Dialyzer
       dialyzer: dialyzer(),
@@ -35,6 +28,18 @@ defmodule Nebulex.Adapters.Redis.MixProject do
       # Hex
       package: package(),
       description: "Nebulex adapter for Redis"
+    ]
+  end
+
+  def cli do
+    [
+      preferred_envs: [
+        coveralls: :test,
+        "coveralls.detail": :test,
+        "coveralls.post": :test,
+        "coveralls.html": :test,
+        "test.ci": :test
+      ]
     ]
   end
 
@@ -54,21 +59,21 @@ defmodule Nebulex.Adapters.Redis.MixProject do
       {:nimble_options, "~> 0.5 or ~> 1.0"},
       {:telemetry, "~> 0.4 or ~> 1.0"},
       {:crc, "~> 0.10", optional: true},
-      {:ex_hash_ring, "~> 6.0", optional: true},
+      {:ex_hash_ring, "~> 7.0", optional: true},
 
       # Test & Code Analysis
       {:excoveralls, "~> 0.18", only: :test},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
-      {:mimic, "~> 1.11", only: :test},
+      {:mimic, "~> 2.2", only: :test},
       {:stream_data, "~> 1.2", only: [:dev, :test]},
 
       # Benchmark Test
-      {:benchee, "~> 1.4", only: [:dev, :test]},
+      {:benchee, "~> 1.5", only: [:dev, :test]},
       {:benchee_html, "~> 1.0", only: [:dev, :test]},
 
       # Docs
-      {:ex_doc, "~> 0.37", only: [:dev, :test], runtime: false}
+      {:ex_doc, "~> 0.39", only: [:dev, :test], runtime: false}
     ]
   end
 
@@ -84,7 +89,7 @@ defmodule Nebulex.Adapters.Redis.MixProject do
     [
       "nbx.setup": [
         "cmd rm -rf nebulex",
-        "cmd git clone --depth 1 --branch main http://github.com/elixir-nebulex/nebulex"
+        "cmd git clone --depth 1 --branch main https://github.com/elixir-nebulex/nebulex"
       ],
       "test.ci": [
         "deps.unlock --check-unused",

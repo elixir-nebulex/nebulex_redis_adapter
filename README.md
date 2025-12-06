@@ -11,7 +11,19 @@
 
 ## 📖 About
 
-This adapter uses [Redix][redix] - a Redis driver for Elixir.
+This adapter uses [Redix][redix], a Redis driver for Elixir, to provide a
+production-ready caching solution with support for multiple deployment modes.
+
+**Key Features:**
+
+- **Three deployment modes:**
+  - `:standalone` - Single Redis instance with connection pooling.
+  - `:redis_cluster` - Native Redis Cluster with automatic sharding and failover.
+  - `:client_side_cluster` - Client-side sharding across multiple Redis instances.
+- **Automatic cluster topology discovery** for Redis Cluster mode.
+- **Connection pooling** for high concurrency.
+- **Custom serializers** for flexible data encoding.
+- **Telemetry integration** for monitoring and observability.
 
 The adapter supports different configuration modes, which are explained in the
 following sections.
@@ -24,7 +36,7 @@ following sections.
 > not the latest released version on Hex. Please reference the
 > [official documentation][docs-lsr] for the latest stable release.
 
-[docs-lsr]: http://hexdocs.pm/nebulex_redis_adapter/NebulexRedisAdapter.html
+[docs-lsr]: http://hexdocs.pm/nebulex_redis_adapter/Nebulex.Adapters.Redis.html
 
 ---
 
@@ -37,7 +49,7 @@ defp deps do
   [
     {:nebulex_redis_adapter, "~> 3.0.0-rc.1"},
     {:crc, "~> 0.10"},        #=> Needed when using `:redis_cluster` mode
-    {:ex_hash_ring, "~> 6.0"} #=> Needed when using `:client_side_cluster` mode
+    {:ex_hash_ring, "~> 7.0"} #=> Needed when using `:client_side_cluster` mode
   ]
 end
 ```
@@ -94,106 +106,79 @@ There are different ways to support distributed caching when using
 
 ### 🏗️ Redis Cluster
 
-[Redis Cluster][redis_cluster] is a built-in feature in Redis since version 3,
-and it may be the most convenient and recommended way to set up Redis in a
-cluster and have distributed cache storage out-of-the-box. This adapter provides
-the `:redis_cluster` mode to set up **Redis Cluster** from the client-side
-automatically and use it transparently.
+[Redis Cluster][redis_cluster] is the recommended approach for production
+distributed caching. The adapter automatically discovers the cluster topology
+and routes commands to the correct shards.
 
-First, ensure you have **Redis Cluster** configured and running.
-
-Then you can define your cache which will use **Redis Cluster**:
+**Quick setup:**
 
 ```elixir
+# 1. Define your cache
 defmodule MyApp.RedisClusterCache do
   use Nebulex.Cache,
     otp_app: :my_app,
     adapter: Nebulex.Adapters.Redis
 end
-```
 
-The configuration:
-
-```elixir
+# 2. Configure in config/config.exs
 config :my_app, MyApp.RedisClusterCache,
-  # Enable redis_cluster mode
   mode: :redis_cluster,
-
-  # For :redis_cluster mode this option must be provided
   redis_cluster: [
-    # Configuration endpoints
-    # This is where the client will connect and send the "CLUSTER SHARDS"
-    # (Redis >= 7) or "CLUSTER SLOTS" (Redis < 7) command to get the cluster
-    # information and set it up on the client side.
     configuration_endpoints: [
       endpoint1_conn_opts: [
         host: "127.0.0.1",
         port: 6379,
-        # Add the password if 'requirepass' is enabled
         password: "password"
       ]
     ]
   ]
 ```
 
-The pool of connections to the different master nodes is automatically
-configured by the adapter once it gets the cluster slots information.
+The adapter automatically:
+- Connects to configuration endpoints.
+- Fetches cluster topology via `CLUSTER SHARDS` (Redis 7+) or `CLUSTER SLOTS`.
+- Creates connection pools for each shard.
+- Handles `MOVED` errors with automatic retry.
 
-> This could be the easiest and recommended way for distributed caching
-  using Redis and **Nebulex.Adapters.Redis**.
+See the [Redis Cluster documentation][redis_cluster_docs] for advanced
+configuration options.
+
+[redis_cluster_docs]: http://hexdocs.pm/nebulex_redis_adapter/Nebulex.Adapters.Redis.html#module-redis-cluster
 
 ### 🔗 Client-side Cluster
 
-**Nebulex.Adapters.Redis** also provides a simple client-side cluster
-implementation based on a sharding distribution model.
+For distributing data across multiple independent Redis instances without Redis
+Cluster, use client-side sharding with consistent hashing.
 
-Define your cache normally:
+**Quick setup:**
 
 ```elixir
+# 1. Define your cache
 defmodule MyApp.ClusteredCache do
   use Nebulex.Cache,
     otp_app: :my_app,
     adapter: Nebulex.Adapters.Redis
 end
-```
 
-The configuration:
-
-```elixir
+# 2. Configure in config/config.exs
 config :my_app, MyApp.ClusteredCache,
-  # Enable client-side cluster mode
   mode: :client_side_cluster,
-
-  # For :client_side_cluster mode this option must be provided
   client_side_cluster: [
-    # Nodes config (each node has its own options)
     nodes: [
-      node1: [
-        # Node pool size
-        pool_size: 10,
-
-        # Redix options to establish the pool of connections against this node
-        conn_opts: [
-          host: "127.0.0.1",
-          port: 9001
-        ]
-      ],
-      node2: [
-        pool_size: 4,
-        conn_opts: [
-          url: "redis://127.0.0.1:9002"
-        ]
-      ],
-      node3: [
-        conn_opts: [
-          host: "127.0.0.1",
-          port: 9003
-        ]
-      ]
-      # Maybe more nodes...
+      node1: [pool_size: 10, conn_opts: [host: "127.0.0.1", port: 9001]],
+      node2: [pool_size: 4, conn_opts: [host: "127.0.0.1", port: 9002]],
+      node3: [conn_opts: [host: "127.0.0.1", port: 9003]]
     ]
   ]
 ```
+
+The adapter uses consistent hashing to distribute keys across nodes. Each node
+maintains its own connection pool.
+
+See the [Client-side Cluster documentation][client_cluster_docs] for more
+configuration options.
+
+[client_cluster_docs]: http://hexdocs.pm/nebulex_redis_adapter/Nebulex.Adapters.Redis.html#module-client-side-cluster
 
 ### 🌉 Using a Redis Proxy
 
@@ -209,34 +194,35 @@ you set up the pool with the host and port pointing to the proxy.
 
 ## 🔧 Using the Adapter as a Redis Client
 
-Since the Redis adapter works on top of `Redix` and provides features like
-connection pools, "Redis Cluster", etc., it can also work as a Redis client.
-The Redis API is quite extensive, and there are many useful commands you may
-want to run, leveraging the Redis adapter features. Therefore, the adapter
-provides additional functions to do so.
+The adapter provides `fetch_conn/1` and `fetch_conn!/1` to execute custom Redis
+commands using `Redix`, while leveraging the adapter's connection pooling and
+cluster routing.
 
 ```elixir
+# Get a connection and execute Redis commands
 iex> conn = MyCache.fetch_conn!()
-iex> Redix.command!(conn, ["LPUSH", "mylist", "world"])
-1
 iex> Redix.command!(conn, ["LPUSH", "mylist", "hello"])
-2
+1
 iex> Redix.command!(conn, ["LRANGE", "mylist", "0", "-1"])
-["hello", "world"]
+["hello"]
+```
 
+For cluster modes, provide a `:key` to ensure commands route to the correct
+shard/node:
+
+```elixir
 iex> conn = MyCache.fetch_conn!(key: "mylist")
 iex> Redix.pipeline!(conn, [
 ...>   ["LPUSH", "mylist", "world"],
-...>   ["LPUSH", "mylist", "hello"],
 ...>   ["LRANGE", "mylist", "0", "-1"]
 ...> ])
-[1, 2, ["hello", "world"]]
+[1, ["world"]]
 ```
 
-> [!NOTE]
->
-> The `:name` may be needed when using dynamic caches, and the `:key` is
-> required when using the `:redis_cluster` or `:client_side_cluster` mode.
+See the [Using as Redis Client documentation][redis_client_docs] for encoding/
+decoding helpers and advanced usage.
+
+[redis_client_docs]: http://hexdocs.pm/nebulex_redis_adapter/Nebulex.Adapters.Redis.html#module-using-the-adapter-as-a-redis-client
 
 ## 🧪 Testing
 
@@ -326,4 +312,4 @@ all checks run successfully.
 
 Copyright (c) 2018, Carlos Bolaños.
 
-Nebulex.Adapters.Redis source code is licensed under the [MIT License](LICENSE).
+Nebulex.Adapters.Redis source code is licensed under the [MIT License](LICENSE.md).

@@ -157,11 +157,13 @@ defmodule Nebulex.Adapters.Redis.ClusterTest do
 
         # Setup mocks
         Nebulex.Adapters.Redis.Cluster
-        |> expect(:fetch_conn, fn _, _, _ ->
+        |> expect(:fetch_conn, 2, fn _, _, _ ->
           wrap_error Nebulex.Error, reason: :redis_connection_error
         end)
 
-        refute RedisClusterConnError.get!("foo")
+        assert_raise Nebulex.Error, ~r/command failed with reason: :redis_connection_error/, fn ->
+          RedisClusterConnError.get!("foo", nil)
+        end
 
         assert_receive {^stop, %{duration: _}, %{status: :ok}}, 5000
       end)
@@ -245,7 +247,7 @@ defmodule Nebulex.Adapters.Redis.ClusterTest do
       _ = Process.flag(:trap_exit, true)
 
       # Setup mocks
-      Nebulex.Adapters.Redis.Cluster.Keyslot
+      Keyslot
       |> stub(:hash_slot, &:erlang.phash2/2)
 
       # put is executed with a Redis command
@@ -262,10 +264,13 @@ defmodule Nebulex.Adapters.Redis.ClusterTest do
     test "ok: command is successful after configuring the cluster", %{cache: cache} do
       [_start, stop] = events = telemetry_events(cache)
 
+      hash_slot = Keyslot.hash_slot("MOVED", 16_384)
+
       with_telemetry_handler(__MODULE__, events, fn ->
         # Setup mocks
-        Nebulex.Adapters.Redis.Cluster.Keyslot
+        Keyslot
         |> expect(:hash_slot, fn _, _ -> 0 end)
+        |> expect(:hash_slot, 2, fn _, _ -> hash_slot end)
 
         # Triggers MOVED error the first time, then the command succeeds
         :ok = cache.put!("MOVED", "MOVED")

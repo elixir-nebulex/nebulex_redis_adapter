@@ -57,7 +57,7 @@ benchmarks = %{
     cache.incr!(:counter, 1)
   end,
   "update!" => fn {cache, random} ->
-    cache.update!(random, 1, &Kernel.+(&1, 1))
+    cache.update!(random, 1, &(&1 + 1))
   end,
   "get_and_update!" => fn {cache, random} ->
     cache.get_and_update!(random, fn

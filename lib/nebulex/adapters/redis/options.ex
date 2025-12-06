@@ -12,17 +12,27 @@ defmodule Nebulex.Adapters.Redis.Options do
       required: false,
       default: :standalone,
       doc: """
-      Redis configuration mode.
+      Defines the Redis configuration mode, which determines how the adapter
+      connects to and distributes data across Redis instances.
 
-        * `:standalone` - A single Redis instance. See the
-          ["Standalone"](#module-standalone) section in the
-          module documentation for more options.
-        * `:redis_cluster` - Redis Cluster setup. See the
-          ["Redis Cluster"](#module-redis-cluster) section in the
-          module documentation for more options.
-        * `:client_side_cluster` - See the
-          ["Client-side Cluster"](#module-client-side-cluster) section in the
-          module documentation for more options.
+        * `:standalone` - Single Redis instance mode. Use this for simple
+          setups or development environments. Creates a pool of connections
+          to one Redis server. See the ["Standalone"](#module-standalone)
+          section for more options.
+
+        * `:redis_cluster` - Native Redis Cluster mode. Use this for
+          production distributed caching with automatic sharding, replication,
+          and failover provided by Redis Cluster. The adapter automatically
+          discovers cluster topology and routes commands to the correct shard.
+          See the ["Redis Cluster"](#module-redis-cluster) section for more
+          options.
+
+        * `:client_side_cluster` - Client-side sharding mode. Use this when
+          you need to distribute data across multiple independent Redis
+          instances without Redis Cluster. The adapter uses consistent hashing
+          to distribute keys. See the
+          ["Client-side Cluster"](#module-client-side-cluster) section for
+          more options.
 
       """
     ],
@@ -30,16 +40,28 @@ defmodule Nebulex.Adapters.Redis.Options do
       type: :pos_integer,
       required: false,
       doc: """
-      The number of connections that will be started by the adapter
-      (based on the `:mode`). The default value is `System.schedulers_online()`.
+      The number of connections per Redis instance or shard.
+
+        * In `:standalone` mode: Total number of connections to the single
+          Redis instance.
+        * In `:redis_cluster` mode: Number of connections per shard
+          (master node).
+        * In `:client_side_cluster` mode: Number of connections per node
+          (can be overridden per node in the node configuration).
+
+      Defaults to `System.schedulers_online()`, which matches the number of
+      available CPU cores and provides good concurrency.
       """
     ],
     serializer: [
       type: {:custom, __MODULE__, :validate_behaviour, [Nebulex.Adapters.Redis.Serializer]},
       required: false,
       doc: """
-      Custom serializer module implementing the `Nebulex.Adapters.Redis.Serializer`
-      behaviour.
+      Custom serializer module implementing the
+      `Nebulex.Adapters.Redis.Serializer` behaviour.
+
+      See the ["Custom Serializers"](#module-custom-serializers) section in
+      the module documentation for examples.
       """
     ],
     serializer_opts: [
@@ -47,7 +69,9 @@ defmodule Nebulex.Adapters.Redis.Options do
       required: false,
       default: [],
       doc: """
-      Custom serializer options.
+      Options passed to the serializer module's encode/decode functions.
+      These options are forwarded to your custom serializer and can be used
+      to configure serialization behavior.
       """,
       keys: [
         encode_key: [
@@ -55,7 +79,8 @@ defmodule Nebulex.Adapters.Redis.Options do
           required: false,
           default: [],
           doc: """
-          Options for encoding the key.
+          Options passed to `c:Nebulex.Adapters.Redis.Serializer.encode_key/2`
+          when encoding cache keys before storing them in Redis.
           """
         ],
         encode_value: [
@@ -63,7 +88,8 @@ defmodule Nebulex.Adapters.Redis.Options do
           required: false,
           default: [],
           doc: """
-          Options for encoding the value.
+          Options passed to `c:Nebulex.Adapters.Redis.Serializer.encode_value/2`
+          when encoding cache values before storing them in Redis.
           """
         ],
         decode_key: [
@@ -71,7 +97,8 @@ defmodule Nebulex.Adapters.Redis.Options do
           required: false,
           default: [],
           doc: """
-          Options for decoding the key.
+          Options passed to `c:Nebulex.Adapters.Redis.Serializer.decode_key/2`
+          when decoding cache keys retrieved from Redis.
           """
         ],
         decode_value: [
@@ -79,7 +106,8 @@ defmodule Nebulex.Adapters.Redis.Options do
           required: false,
           default: [],
           doc: """
-          Options for decoding the value.
+          Options passed to `c:Nebulex.Adapters.Redis.Serializer.decode_value/2`
+          when decoding cache values retrieved from Redis.
           """
         ]
       ]
@@ -89,8 +117,13 @@ defmodule Nebulex.Adapters.Redis.Options do
       required: false,
       default: [host: "127.0.0.1", port: 6379],
       doc: """
-      Redis client options. See `Redix` docs for more information
-      about the options.
+      Redis connection options for `:standalone` mode. These options are
+      passed directly to `Redix` when establishing connections.
+
+      For cluster modes, connection options are specified within
+      `:redis_cluster` or `:client_side_cluster` configuration.
+
+      See `Redix.start_link/1` for the complete list of available options.
       """
     ],
     redis_cluster: [
@@ -113,17 +146,27 @@ defmodule Nebulex.Adapters.Redis.Options do
           type: {:custom, __MODULE__, :validate_non_empty_cluster_opts, [:redis_cluster]},
           required: true,
           doc: """
-          A keyword list of named endpoints where the key is an atom as
-          an identifier and the value is another keyword list of options
-          (same as `:conn_opts`).
+          A keyword list of Redis Cluster nodes used to discover and fetch
+          the cluster topology.
 
-          See ["Redis Cluster"](#module-redis-cluster) for more information.
+          Each endpoint is identified by an atom key and configured with
+          connection options (same format as `:conn_opts`). The adapter tries
+          each endpoint in order until it successfully retrieves the cluster
+          topology using **"CLUSTER SHARDS"** (Redis >= 7) or
+          **"CLUSTER SLOTS"** (Redis < 7).
+
+          Providing multiple endpoints improves reliability; if one node is
+          unavailable, the adapter will try the next one.
+
+          See ["Redis Cluster"](#module-redis-cluster) for configuration
+          examples.
           """,
           keys: [
             *: [
               type: :keyword_list,
               doc: """
-              Same as `:conn_opts`.
+              Connection options for this endpoint. Same format as `:conn_opts`
+              (`:host`, `:port`, `:password`, etc.).
               """
             ]
           ]
@@ -133,14 +176,21 @@ defmodule Nebulex.Adapters.Redis.Options do
           required: false,
           default: false,
           doc: """
-          Defines whether the given master host should be overridden with the
-          configuration endpoint or not. Defaults to `false`.
+          Determines whether to override master host addresses returned by
+          Redis Cluster with the configuration endpoint's host.
 
-          The adapter uses the host returned by the **"CLUSTER SHARDS"**
-          (Redis >= 7) or **"CLUSTER SLOTS"** (Redis < 7) command. One may
-          consider set it to `true` for tests when using Docker for example,
-          or when Redis nodes are behind a load balancer that Redis doesn't
-          know the endpoint of. See Redis docs for more information.
+          By default (`false`), the adapter uses host addresses returned by
+          **"CLUSTER SHARDS"** (Redis >= 7) or **"CLUSTER SLOTS"** (Redis < 7).
+          Set to `true` when:
+
+            * Running Redis in Docker, where advertised addresses differ from
+              actual connection addresses.
+            * Redis nodes are behind NAT or a load balancer.
+            * The cluster advertises internal IPs unreachable from your
+              application.
+
+          When `true`, the adapter replaces cluster-advertised hosts with the
+          host from the configuration endpoint that provided the topology.
           """
         ],
         keyslot: [
@@ -148,7 +198,19 @@ defmodule Nebulex.Adapters.Redis.Options do
           required: false,
           default: &RedisClusterKeyslot.hash_slot/2,
           doc: """
-          A function to compute the hash slot for a given key and range.
+          Custom function to compute the Redis Cluster hash slot for a given
+          key.
+
+          The function receives two arguments:
+            1. `key` - The cache key (after serialization).
+            2. `range` - The total number of hash slots (typically `16384`).
+
+          It should return an integer between `0` and `range - 1`.
+
+          The default implementation uses CRC16-XMODEM algorithm with support
+          for hash tags (e.g., `{user}:123` and `{user}:456` map to the same
+          slot). Only provide a custom function if you need different hash
+          slot calculation logic.
           """
         ]
       ]
@@ -173,21 +235,30 @@ defmodule Nebulex.Adapters.Redis.Options do
           type: {:custom, __MODULE__, :validate_non_empty_cluster_opts, [:client_side_cluster]},
           required: true,
           doc: """
-          A keyword list of named nodes where the key is an atom as
-          an identifier and the value is another keyword list of options
-          (same as `:conn_opts`).
+          A keyword list of independent Redis nodes that form the client-side
+          cluster.
 
-          See ["Client-side Cluster"](#module-client-side-cluster)
-          for more information.
+          Each node is identified by an atom key and configured with connection
+          options. The adapter uses consistent hashing to distribute cache keys
+          across these nodes. Each node can optionally override the global
+          `:pool_size` setting.
+
+          See ["Client-side Cluster"](#module-client-side-cluster) for
+          configuration examples.
           """,
           keys: [
             *: [
               type: :keyword_list,
               doc: """
-              Same as `:conn_opts`.
+              Configuration options for this node. Accepts all `:conn_opts`
+              options (`:host`, `:port`, `:password`, etc.) plus:
 
-              Additionally, option `:ch_ring_replicas` is also allowed to
-              indicate the number of replicas for the consistent hash ring.
+                * `:pool_size` - Override global pool size for this specific
+                  node.
+                * `:ch_ring_replicas` - Number of virtual nodes (replicas) in
+                  the consistent hash ring. Higher values improve distribution
+                  but increase memory usage.
+
               """
             ]
           ]
@@ -196,7 +267,7 @@ defmodule Nebulex.Adapters.Redis.Options do
     ]
   ]
 
-  # Command/Pipilene options
+  # Command/Pipeline options
   command_opts = [
     timeout: [
       type: :timeout,
@@ -223,15 +294,19 @@ defmodule Nebulex.Adapters.Redis.Options do
       required: false,
       default: :raise,
       doc: """
-      Indicates whether to raise an exception when an error occurs or do nothing
-      (skip errors).
+      Controls error handling behavior when streaming cache entries.
 
-      When the stream is evaluated, the adapter attempts to execute the `stream`
-      command on the different nodes. Still, the execution could fail due to an
-      RPC error or the command explicitly returns an error. If the option is set
-      to `:raise`, the command will raise an exception when an error occurs on
-      the stream evaluation. On the other hand, if it is set to `:nothing`, the
-      error is skipped.
+        * `:raise` (default) - Raises an exception immediately when an error
+          occurs during stream evaluation. This ensures you're aware of any
+          issues retrieving data.
+
+        * `:nothing` - Silently skips errors and continues streaming. Use this
+          when you want partial results even if some shards/nodes are
+          unavailable.
+
+      In cluster modes (`:redis_cluster` or `:client_side_cluster`), the
+      adapter queries multiple Redis instances. Network errors, timeout issues,
+      or Redis errors from any instance will trigger this error handler.
       """
     ]
   ]
@@ -250,8 +325,20 @@ defmodule Nebulex.Adapters.Redis.Options do
       type: :any,
       required: false,
       doc: """
-      The key is used to compute the node where the command will be executed.
-      It is only required for `:redis_cluster` and `:client_side_cluster` modes.
+      A cache key used to determine which Redis instance/shard to connect to
+      in cluster modes.
+
+      Required for `:redis_cluster` and `:client_side_cluster` modes, where
+      the adapter uses the key to:
+
+        * In `:redis_cluster` mode: Calculate the hash slot to find the
+          correct shard.
+        * In `:client_side_cluster` mode: Use consistent hashing to select
+          the appropriate node.
+
+      When executing custom Redis commands (e.g., list operations, sorted
+      sets), provide a key to ensure all operations target the same Redis
+      instance. Not required for `:standalone` mode.
       """
     ]
   ]
