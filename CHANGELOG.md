@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v3.0.0-rc.2](https://github.com/elixir-nebulex/nebulex_redis_adapter/tree/v3.0.0-rc.2) (2025-12-07)
+> [Full Changelog](https://github.com/elixir-nebulex/nebulex_redis_adapter/compare/v3.0.0-rc.1...v3.0.0-rc.2)
+
+### Enhancements
+
+- Enhanced module documentation with improved examples and clearer explanations.
+- Improved options documentation with detailed descriptions and use cases.
+- Encapsulated `ExHashRing` calls within `HashRing` module for better abstraction.
+- Overall code improvements and benchmark updates.
+
 ## [v3.0.0-rc.1](https://github.com/elixir-nebulex/nebulex_redis_adapter/tree/v3.0.0-rc.1) (2025-05-10)
 > [Full Changelog](https://github.com/elixir-nebulex/nebulex_redis_adapter/compare/v2.4.2...v3.0.0-rc.1)
 

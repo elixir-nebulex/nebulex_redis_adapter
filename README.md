@@ -47,7 +47,8 @@ Add `:nebulex_redis_adapter` to your list of dependencies in `mix.exs`:
 ```elixir
 defp deps do
   [
-    {:nebulex_redis_adapter, "~> 3.0.0-rc.1"},
+    {:nebulex_redis_adapter, "~> 3.0.0-rc.2"},
+    {:telemetry, "~> 1.0"},   #=> For observability/telemetry support
     {:crc, "~> 0.10"},        #=> Needed when using `:redis_cluster` mode
     {:ex_hash_ring, "~> 7.0"} #=> Needed when using `:client_side_cluster` mode
   ]
@@ -57,10 +58,12 @@ end
 The adapter dependencies are optional to provide more flexibility and load only
 the needed ones. For example:
 
-* `:crc` - Required when using the adapter in `:redis_cluster` mode.
-  See [Redis Cluster][redis_cluster].
-* `:ex_hash_ring` - Required when using the adapter in
-  `:client_side_cluster` mode.
+  * `:telemetry` - Add when you want to emit and consume telemetry events for
+    monitoring cache operations (recommended).
+  * `:crc` - Required when using the adapter in `:redis_cluster` mode.
+    See [Redis Cluster][redis_cluster].
+  * `:ex_hash_ring` - Required when using the adapter in
+    `:client_side_cluster` mode.
 
 Then run `mix deps.get` to fetch the dependencies.
 
@@ -96,7 +99,7 @@ more information about the options, please check out the
 See the [online documentation][docs] and [Redis cache example][redis_example]
 for more information.
 
-[docs]: http://hexdocs.pm/nebulex_redis_adapter/3.0.0-rc.1/Nebulex.Adapters.Redis.html
+[docs]: http://hexdocs.pm/nebulex_redis_adapter/3.0.0-rc.2/Nebulex.Adapters.Redis.html
 [redis_example]: http://github.com/elixir-nebulex/nebulex_examples/tree/master/redis_cache
 
 ## 🌐 Distributed Caching
