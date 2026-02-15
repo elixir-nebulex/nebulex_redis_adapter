@@ -19,3 +19,4 @@ erl_crash.dump
 *.coverdata
 /priv
 /nebulex
+CLAUDE.md

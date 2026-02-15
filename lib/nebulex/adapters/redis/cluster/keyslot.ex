@@ -1,9 +1,9 @@
 defmodule Nebulex.Adapters.Redis.Cluster.Keyslot do
   @moduledoc """
-  Default `Nebulex.Adapter.Keyslot` implementation.
+  Default keyslot implementation for Redis Cluster hash slot calculation.
   """
 
-  @typedoc "Keyslot funtion type"
+  @typedoc "Keyslot function type"
   @type t() :: (binary(), any() -> non_neg_integer())
 
   if Code.ensure_loaded?(CRC) do

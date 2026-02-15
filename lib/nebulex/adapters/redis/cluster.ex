@@ -1,7 +1,5 @@
 defmodule Nebulex.Adapters.Redis.Cluster do
-  @moduledoc """
-  Redis Cluster Manager
-  """
+  @moduledoc false
 
   import Nebulex.Adapters.Redis.Helpers
   import Nebulex.Utils, only: [wrap_error: 2]

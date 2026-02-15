@@ -33,8 +33,9 @@ defimpl Nebulex.Adapters.Redis.Serializer.Serializable, for: BitString do
       description: "cannot encode a bitstring to a string"
   end
 
-  def decode(data, _opts) do
-    :erlang.binary_to_term(data)
+  # sobelow_skip ["Misc.BinToTerm"]
+  def decode(data, opts) do
+    :erlang.binary_to_term(data, opts)
   rescue
     ArgumentError -> data
   end

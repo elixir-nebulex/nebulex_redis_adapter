@@ -1,7 +1,5 @@
 defmodule Nebulex.Adapters.Redis.Cluster.PoolSupervisor do
-  @moduledoc """
-  Redis Cluster shard supervisor.
-  """
+  @moduledoc false
 
   use Supervisor
 

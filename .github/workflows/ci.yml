@@ -23,6 +23,7 @@ jobs:
             os: 'ubuntu-latest'
             lint: true
             coverage: true
+            sobelow: true
             dialyzer: true
           - elixir: 1.18.x
             otp: 28.x
@@ -96,6 +97,10 @@ jobs:
           mix format --check-formatted
           mix credo --strict
         if: ${{ matrix.lint }}
+
+      - name: Run sobelow
+        run: mix sobelow --skip --exit Low
+        if: ${{ matrix.sobelow }}
 
       - name: Run tests
         run: |

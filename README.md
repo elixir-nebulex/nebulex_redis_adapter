@@ -1,13 +1,13 @@
 # Nebulex.Adapters.Redis 🧱⚡
 > Nebulex adapter for Redis (including [Redis Cluster][redis_cluster] support).
 
-![CI](http://github.com/elixir-nebulex/nebulex_redis_adapter/workflows/CI/badge.svg)
-[![Codecov](http://codecov.io/gh/elixir-nebulex/nebulex_redis_adapter/graph/badge.svg)](http://codecov.io/gh/elixir-nebulex/nebulex_redis_adapter/graph/badge.svg)
-[![Hex.pm](http://img.shields.io/hexpm/v/nebulex_redis_adapter.svg)](http://hex.pm/packages/nebulex_redis_adapter)
-[![Documentation](http://img.shields.io/badge/Documentation-ff69b4)](http://hexdocs.pm/nebulex_redis_adapter)
+![CI](https://github.com/elixir-nebulex/nebulex_redis_adapter/workflows/CI/badge.svg)
+[![Codecov](https://codecov.io/gh/elixir-nebulex/nebulex_redis_adapter/graph/badge.svg)](https://codecov.io/gh/elixir-nebulex/nebulex_redis_adapter)
+[![Hex.pm](https://img.shields.io/hexpm/v/nebulex_redis_adapter.svg)](https://hex.pm/packages/nebulex_redis_adapter)
+[![Documentation](https://img.shields.io/badge/Documentation-ff69b4)](https://hexdocs.pm/nebulex_redis_adapter)
 
-[redis_cluster]: http://redis.io/topics/cluster-tutorial
-[redix]: http://github.com/whatyouhide/redix
+[redis_cluster]: https://redis.io/topics/cluster-tutorial
+[redix]: https://github.com/whatyouhide/redix
 
 ## 📖 About
 
@@ -36,7 +36,7 @@ following sections.
 > not the latest released version on Hex. Please reference the
 > [official documentation][docs-lsr] for the latest stable release.
 
-[docs-lsr]: http://hexdocs.pm/nebulex_redis_adapter/Nebulex.Adapters.Redis.html
+[docs-lsr]: https://hexdocs.pm/nebulex_redis_adapter/Nebulex.Adapters.Redis.html
 
 ---
 
@@ -47,7 +47,7 @@ Add `:nebulex_redis_adapter` to your list of dependencies in `mix.exs`:
 ```elixir
 defp deps do
   [
-    {:nebulex_redis_adapter, "~> 3.0.0-rc.2"},
+    {:nebulex_redis_adapter, "~> 3.0"},
     {:telemetry, "~> 1.0"},   #=> For observability/telemetry support
     {:crc, "~> 0.10"},        #=> Needed when using `:redis_cluster` mode
     {:ex_hash_ring, "~> 7.0"} #=> Needed when using `:client_side_cluster` mode
@@ -99,8 +99,8 @@ more information about the options, please check out the
 See the [online documentation][docs] and [Redis cache example][redis_example]
 for more information.
 
-[docs]: http://hexdocs.pm/nebulex_redis_adapter/3.0.0-rc.2/Nebulex.Adapters.Redis.html
-[redis_example]: http://github.com/elixir-nebulex/nebulex_examples/tree/master/redis_cache
+[docs]: https://hexdocs.pm/nebulex_redis_adapter/Nebulex.Adapters.Redis.html
+[redis_example]: https://github.com/elixir-nebulex/nebulex_examples/tree/master/redis_cache
 
 ## 🌐 Distributed Caching
 
@@ -146,7 +146,7 @@ The adapter automatically:
 See the [Redis Cluster documentation][redis_cluster_docs] for advanced
 configuration options.
 
-[redis_cluster_docs]: http://hexdocs.pm/nebulex_redis_adapter/Nebulex.Adapters.Redis.html#module-redis-cluster
+[redis_cluster_docs]: https://hexdocs.pm/nebulex_redis_adapter/Nebulex.Adapters.Redis.html#module-redis-cluster
 
 ### 🔗 Client-side Cluster
 
@@ -181,7 +181,7 @@ maintains its own connection pool.
 See the [Client-side Cluster documentation][client_cluster_docs] for more
 configuration options.
 
-[client_cluster_docs]: http://hexdocs.pm/nebulex_redis_adapter/Nebulex.Adapters.Redis.html#module-client-side-cluster
+[client_cluster_docs]: https://hexdocs.pm/nebulex_redis_adapter/Nebulex.Adapters.Redis.html#module-client-side-cluster
 
 ### 🌉 Using a Redis Proxy
 
@@ -192,8 +192,8 @@ it would only require configuration. Instead of connecting the adapter to the
 Redis nodes, you connect it to the proxy nodes. This means in the config,
 you set up the pool with the host and port pointing to the proxy.
 
-[envoy]: http://www.envoyproxy.io/
-[twemproxy]: http://github.com/twitter/twemproxy
+[envoy]: https://www.envoyproxy.io/
+[twemproxy]: https://github.com/twitter/twemproxy
 
 ## 🔧 Using the Adapter as a Redis Client
 
@@ -225,7 +225,7 @@ iex> Redix.pipeline!(conn, [
 See the [Using as Redis Client documentation][redis_client_docs] for encoding/
 decoding helpers and advanced usage.
 
-[redis_client_docs]: http://hexdocs.pm/nebulex_redis_adapter/Nebulex.Adapters.Redis.html#module-using-the-adapter-as-a-redis-client
+[redis_client_docs]: https://hexdocs.pm/nebulex_redis_adapter/Nebulex.Adapters.Redis.html#module-using-the-adapter-as-a-redis-client
 
 ## 🧪 Testing
 
@@ -241,8 +241,8 @@ you have Docker installed and then just run:
 $ docker-compose up
 ```
 
-[docker]: http://www.docker.com/
-[docker_compose]: http://docs.docker.com/compose/
+[docker]: https://www.docker.com/
+[docker_compose]: https://docs.docker.com/compose/
 
 Since `Nebulex.Adapters.Redis` uses the support modules and shared tests
 from `Nebulex` and by default its test folder is not included in the Hex
@@ -284,7 +284,7 @@ You will find the coverage report within `cover/excoveralls.html`.
 
 ## 📊 Benchmarks
 
-Benchmarks were added using [benchee](http://github.com/PragTob/benchee);
+Benchmarks were added using [benchee](https://github.com/PragTob/benchee);
 to learn more, see the [benchmarks](./benchmarks) directory.
 
 To run the benchmarks:
@@ -299,9 +299,9 @@ mix run benchmarks/benchmark.exs
 
 Contributions to Nebulex are very welcome and appreciated!
 
-Use the [issue tracker](http://github.com/elixir-nebulex/nebulex_redis_adapter/issues)
+Use the [issue tracker](https://github.com/elixir-nebulex/nebulex_redis_adapter/issues)
 for bug reports or feature requests. Open a
-[pull request](http://github.com/elixir-nebulex/nebulex_redis_adapter/pulls)
+[pull request](https://github.com/elixir-nebulex/nebulex_redis_adapter/pulls)
 when you are ready to contribute.
 
 When submitting a pull request, you should not update the [CHANGELOG.md](CHANGELOG.md),

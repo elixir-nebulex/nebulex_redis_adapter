@@ -1,7 +1,5 @@
 defmodule Nebulex.Adapters.Redis.ClientSideCluster do
-  @moduledoc """
-  Client-side Cluster
-  """
+  @moduledoc false
 
   import Nebulex.Adapters.Redis.Helpers
   import Nebulex.Utils, only: [camelize_and_concat: 1]

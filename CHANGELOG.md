@@ -41,7 +41,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
   mode no longer supports a module implementing the `Nebulex.Adapter.Keyslot`
   behaviour. Please use an anonymous function that receives the key and the
   range (16384 slots for Redis Cluster) as arguments and returns the hash slot
-  where perform the action to (e.g., `keyslot: &MyApp.hash_slot/2`).
+  where to perform the action (e.g., `keyslot: &MyApp.hash_slot/2`).
 - [Nebulex.Adapters.Redis] The option `:keyslot` when using
   `:client_side_cluster` mode is no longer supported.
 - [Nebulex.Adapters.Redis] The previous extended functions `command/1,2`,
@@ -242,7 +242,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 **Closed issues:**
 
-- Compatiblity with nebulex v2.0.0-rc.0?
+- Compatibility with nebulex v2.0.0-rc.0?
   [#21](https://github.com/cabol/nebulex_redis_adapter/issues/21)
 - Update redix dependency version to ~> 0.11
   [#19](https://github.com/cabol/nebulex_redis_adapter/issues/19)

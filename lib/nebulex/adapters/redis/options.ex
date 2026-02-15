@@ -72,6 +72,13 @@ defmodule Nebulex.Adapters.Redis.Options do
       Options passed to the serializer module's encode/decode functions.
       These options are forwarded to your custom serializer and can be used
       to configure serialization behavior.
+
+      > #### Compatibility and safety {: .warning}
+      >
+      > For backward compatibility, decode options default to `[]`.
+      > If you decode terms from untrusted Redis data, prefer safe decoding
+      > (for example, pass `[:safe]` to decode options used by
+      > `:erlang.binary_to_term/2`).
       """,
       keys: [
         encode_key: [
@@ -99,6 +106,9 @@ defmodule Nebulex.Adapters.Redis.Options do
           doc: """
           Options passed to `c:Nebulex.Adapters.Redis.Serializer.decode_key/2`
           when decoding cache keys retrieved from Redis.
+
+          Defaults to `[]` for backward compatibility. For untrusted data,
+          prefer `[:safe]`.
           """
         ],
         decode_value: [
@@ -108,6 +118,9 @@ defmodule Nebulex.Adapters.Redis.Options do
           doc: """
           Options passed to `c:Nebulex.Adapters.Redis.Serializer.decode_value/2`
           when decoding cache values retrieved from Redis.
+
+          Defaults to `[]` for backward compatibility. For untrusted data,
+          prefer `[:safe]`.
           """
         ]
       ]

@@ -10,8 +10,8 @@ defmodule Nebulex.Adapters.Redis do
 
     * **Redis Cluster** - [Redis Cluster](https://redis.io/topics/cluster-tutorial)
       is a built-in feature in Redis since version 3, and it may be the most
-      convenient and recommendable way to set up Redis in a cluster and have
-      a distributed cache storage out-of-box. This adapter provides the
+      convenient and recommended way to set up Redis in a cluster and have
+      a distributed cache storage out of the box. This adapter provides the
       `:redis_cluster` mode to set up **Redis Cluster** from the client-side
       automatically and be able to use it transparently.
 
@@ -25,7 +25,7 @@ defmodule Nebulex.Adapters.Redis do
 
       defmodule MyApp.RedisCache do
         use Nebulex.Cache,
-          otp_app: :nebulex,
+          otp_app: :my_app,
           adapter: Nebulex.Adapters.Redis
       end
 
@@ -44,7 +44,7 @@ defmodule Nebulex.Adapters.Redis do
 
       defmodule MyApp.RedisClusterCache do
         use Nebulex.Cache,
-          otp_app: :nebulex,
+          otp_app: :my_app,
           adapter: Nebulex.Adapters.Redis
       end
 
@@ -86,7 +86,7 @@ defmodule Nebulex.Adapters.Redis do
 
       defmodule MyApp.ClusteredCache do
         use Nebulex.Cache,
-          otp_app: :nebulex,
+          otp_app: :my_app,
           adapter: Nebulex.Adapters.Redis
       end
 
@@ -181,7 +181,7 @@ defmodule Nebulex.Adapters.Redis do
   >
   > This adapter currently uses the `KEYS` command. A refactoring to use
   > `SCAN` (the Redis-recommended approach for production) is planned for
-  > the next release.
+  > a future release.
 
   Keep in mind the following limitations:
 
@@ -202,10 +202,10 @@ defmodule Nebulex.Adapters.Redis do
       :ok
 
       # returns key/value pairs by default
-      iex> MyApp.RedisCache.get_all!("**name**") |> Map.new()
+      iex> MyApp.RedisCache.get_all!("*name*") |> Map.new()
       %{"firstname" => "Albert", "lastname" => "Einstein"}
 
-      iex> MyApp.RedisCache.get_all!("**name**", select: :key)
+      iex> MyApp.RedisCache.get_all!("*name*", select: :key)
       ["firstname", "lastname"]
 
       iex> MyApp.RedisCache.get_all!("a??", select: :key)
@@ -214,7 +214,7 @@ defmodule Nebulex.Adapters.Redis do
       iex> MyApp.RedisCache.get_all!(select: :key)
       ["age", "firstname", "lastname"]
 
-      iex> MyApp.RedisCache.stream!("**name**", select: :key) |> Enum.to_list()
+      iex> MyApp.RedisCache.stream!("*name*", select: :key) |> Enum.to_list()
       ["firstname", "lastname"]
 
   ### Deleting/counting keys
@@ -261,7 +261,7 @@ defmodule Nebulex.Adapters.Redis do
       2
       iex> MyCache.fetch_conn!()
       ...> |> Redix.command!(["LRANGE", "mylist", "0", "-1"])
-      ["hello", "world"]
+      ["world", "hello"]
 
   When working with `:redis_cluster` or `:client_side_cluster` modes the option
   `:key` is required:
@@ -272,7 +272,7 @@ defmodule Nebulex.Adapters.Redis do
       ...>   ["LPUSH", "mylist", "world"],
       ...>   ["LRANGE", "mylist", "0", "-1"]
       ...> ])
-      [1, 2, ["hello", "world"]]
+      [1, 2, ["world", "hello"]]
 
   Since these functions run on top of `Redix`, they also accept their options
   (e.g.: `:timeout`, and `:telemetry_metadata`). See `Redix` docs for more
@@ -307,14 +307,33 @@ defmodule Nebulex.Adapters.Redis do
       iex> Redix.command!(conn, ["GET", key]) |> MyCache.decode_value()
       {:value, "value"}
 
-  ### Custom Serializers
+  ## Serializers
 
   By default, the adapter uses Erlang's term format (`:erlang.term_to_binary/2`)
-  for serialization, with strings being stored as-is. You can implement a
-  custom serializer by creating a module that implements the
-  `Nebulex.Adapters.Redis.Serializer` behaviour.
+  for serialization, with strings being stored as-is (no extra encoding).
 
-  This is useful when you need:
+  Since the default serializer uses `:erlang.binary_to_term/2` for decoding,
+  you should configure safe decode options when decoding data from untrusted
+  sources:
+
+      config :my_app, MyApp.RedisCache,
+        serializer_opts: [
+          decode_key: [:safe],
+          decode_value: [:safe]
+        ]
+
+  > #### Security Note {: .warning}
+  >
+  > For backward compatibility, serializer decode options default to `[]`.
+  > If your Redis data may come from untrusted sources, it is recommended
+  > to set `[:safe]` to prevent arbitrary atom creation or code execution.
+
+  ### Custom Serializers
+
+  You can implement a custom serializer by creating a module that implements
+  the `Nebulex.Adapters.Redis.Serializer` behaviour. This is useful when
+  you need:
+
   - JSON serialization for interoperability with other systems.
   - Custom compression algorithms.
   - Different encoding strategies for keys vs values.
@@ -349,8 +368,8 @@ defmodule Nebulex.Adapters.Redis do
   exposes the following Telemetry events for the `:redis_cluster` mode:
 
     * `telemetry_prefix ++ [:redis_cluster, :setup, :start]` - This event is
-      specific to the `:redis_cluster` mode. Before the configuration manager
-      calls Redis to set up the cluster shards, this event should be invoked.
+      specific to the `:redis_cluster` mode. It is emitted before the
+      configuration manager calls Redis to set up the cluster shards.
 
       The `:measurements` map will include the following:
 
@@ -363,8 +382,8 @@ defmodule Nebulex.Adapters.Redis do
       * `:pid` - The configuration manager PID.
 
     * `telemetry_prefix ++ [:redis_cluster, :setup, :stop]` - This event is
-      specific to the `:redis_cluster` mode. After the configuration manager
-      set up the cluster shards, this event should be invoked.
+      specific to the `:redis_cluster` mode. It is emitted after the
+      configuration manager sets up the cluster shards.
 
       The `:measurements` map will include the following:
 
@@ -383,8 +402,8 @@ defmodule Nebulex.Adapters.Redis do
         `:succeeded`, otherwise, it is the error reason.
 
     * `telemetry_prefix ++ [:redis_cluster, :setup, :exception]` - This event
-      is specific to the `:redis_cluster` mode. When an exception is raised
-      while configuring the cluster, this event should be invoked.
+      is specific to the `:redis_cluster` mode. It is emitted when an
+      exception is raised while configuring the cluster.
 
       The `:measurements` map will include the following:
 
@@ -973,10 +992,7 @@ defmodule Nebulex.Adapters.Redis do
       encoded_keys
       |> group_keys_by_hash_slot(adapter_meta, :keys)
       |> Enum.reduce_while({:ok, []}, fn {hash_slot, keys}, {:ok, acc} ->
-        case mget(adapter_meta, keys, select, opts, hash_slot) do
-          {:ok, ls} -> {:cont, {:ok, ls ++ acc}}
-          {:error, _} = e -> {:halt, e}
-        end
+        get_keys(adapter_meta, keys, select, opts, hash_slot, acc)
       end)
     end
   end
@@ -1194,6 +1210,13 @@ defmodule Nebulex.Adapters.Redis do
     end
   end
 
+  defp get_keys(adapter_meta, keys, select, opts, hash_slot, acc) do
+    case mget(adapter_meta, keys, select, opts, hash_slot) do
+      {:ok, ls} -> {:cont, {:ok, ls ++ acc}}
+      {:error, _} = e -> {:halt, e}
+    end
+  end
+
   defp atomify_key(str) when is_binary(str) do
     str
     |> String.downcase()
@@ -1201,6 +1224,7 @@ defmodule Nebulex.Adapters.Redis do
     |> to_atom()
   end
 
+  # sobelow_skip ["DOS.StringToAtom"]
   defp to_atom(str) when is_binary(str) do
     String.to_existing_atom(str)
   rescue

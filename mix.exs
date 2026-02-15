@@ -2,7 +2,7 @@ defmodule Nebulex.Adapters.Redis.MixProject do
   use Mix.Project
 
   @source_url "https://github.com/elixir-nebulex/nebulex_redis_adapter"
-  @version "3.0.0-rc.2"
+  @version "3.0.0-dev"
 
   def project do
     [
@@ -22,6 +22,9 @@ defmodule Nebulex.Adapters.Redis.MixProject do
 
       # Dialyzer
       dialyzer: dialyzer(),
+
+      # Usage Rules
+      usage_rules: usage_rules(),
 
       # Hex
       package: package(),
@@ -63,23 +66,27 @@ defmodule Nebulex.Adapters.Redis.MixProject do
       {:excoveralls, "~> 0.18", only: :test},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
-      {:mimic, "~> 2.2", only: :test},
+      {:sobelow, "~> 0.14", only: [:dev, :test], runtime: false},
+      {:mimic, "~> 2.0", only: :test},
       {:stream_data, "~> 1.2", only: [:dev, :test]},
 
       # Benchmark Test
       {:benchee, "~> 1.5", only: [:dev, :test]},
       {:benchee_html, "~> 1.0", only: [:dev, :test]},
 
+      # Usage Rules
+      {:usage_rules, "~> 1.0", only: [:dev]},
+
       # Docs
-      {:ex_doc, "~> 0.39", only: [:dev, :test], runtime: false}
+      {:ex_doc, "~> 0.40", only: [:dev, :test], runtime: false}
     ]
   end
 
   defp nebulex_dep do
     if path = System.get_env("NEBULEX_PATH") do
-      {:nebulex, path: path}
+      {:nebulex, path: path, override: true}
     else
-      {:nebulex, "~> #{@version}"}
+      {:nebulex, github: "elixir-nebulex/nebulex", branch: "main", override: true}
     end
   end
 
@@ -94,9 +101,11 @@ defmodule Nebulex.Adapters.Redis.MixProject do
         "compile --warnings-as-errors",
         "format --check-formatted",
         "credo --strict",
+        "sobelow --skip --exit Low",
         "coveralls.html",
         "dialyzer --format short"
-      ]
+      ],
+      "ur.sync": ["usage_rules.sync"]
     ]
   end
 
@@ -114,7 +123,7 @@ defmodule Nebulex.Adapters.Redis.MixProject do
     [
       main: "Nebulex.Adapters.Redis",
       source_ref: "v#{@version}",
-      canonical: "http://hexdocs.pm/nebulex_redis_adapter",
+      canonical: "https://hexdocs.pm/nebulex_redis_adapter",
       source_url: @source_url
     ]
   end
@@ -126,14 +135,33 @@ defmodule Nebulex.Adapters.Redis.MixProject do
       flags: [
         :unmatched_returns,
         :error_handling,
+        :extra_return,
         :no_opaque,
-        :unknown,
         :no_return
       ]
     ]
   end
 
   defp plt_file_name do
-    "dialyzer-#{Mix.env()}-#{System.otp_release()}-#{System.version()}.plt"
+    "dialyzer-#{Mix.env()}-#{System.version()}-#{System.otp_release()}.plt"
+  end
+
+  defp usage_rules do
+    [
+      # The file to write usage rules into (required for usage_rules syncing)
+      file: "AGENTS.md",
+
+      # rules to include directly in CLAUDE.md
+      usage_rules: ["nebulex:all"],
+
+      # Agent skills configuration
+      skills: [
+        # The location of the skills directory
+        location: ".claude/skills",
+
+        # Auto-build a "use-<pkg>" skill per dependency
+        deps: [:nebulex]
+      ]
+    ]
   end
 end

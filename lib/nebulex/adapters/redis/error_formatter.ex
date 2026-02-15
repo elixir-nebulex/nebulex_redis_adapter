@@ -1,7 +1,5 @@
 defmodule Nebulex.Adapters.Redis.ErrorFormatter do
-  @moduledoc """
-  Adapter error formatter.
-  """
+  @moduledoc false
 
   import Nebulex.Error, only: [maybe_format_metadata: 2]
 
