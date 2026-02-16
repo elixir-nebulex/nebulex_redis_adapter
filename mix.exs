@@ -151,14 +151,22 @@ defmodule Nebulex.Adapters.Redis.MixProject do
       # The file to write usage rules into (required for usage_rules syncing)
       file: "AGENTS.md",
 
-      # rules to include directly in CLAUDE.md
-      usage_rules: ["nebulex:all"],
+      # rules to include directly in AGENTS.md
+      usage_rules: [
+        {:nebulex,
+         [
+           sub_rules: [
+             "workflow",
+             "nebulex",
+             "elixir-style",
+             "elixir"
+           ]
+         ]},
+        :otp
+      ],
 
       # Agent skills configuration
       skills: [
-        # The location of the skills directory
-        location: ".claude/skills",
-
         # Auto-build a "use-<pkg>" skill per dependency
         deps: [:nebulex]
       ]

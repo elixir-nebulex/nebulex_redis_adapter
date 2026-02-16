@@ -1,995 +1,188 @@
+## Local Scope First (`nebulex_redis_adapter`)
+
+This repository is `nebulex_redis_adapter` (the Redis adapter for Nebulex),
+not Nebulex core. When imported Nebulex sections reference missing
+`usage-rules/*.md` paths or Nebulex-core files, treat them as upstream
+guidance and prioritize this repository's local files and modules.
+
+### Local Rule Precedence (for this repo)
+
+1. This local preface.
+2. `nebulex:workflow` section in this file.
+3. `nebulex:nebulex` section in this file (as framework guidance).
+4. `nebulex:elixir-style` and `nebulex:elixir` sections in this file.
+
+### Local Key Files
+
+- `lib/nebulex/adapters/redis.ex` - Main Redis adapter implementation.
+- `lib/nebulex/adapters/redis/options.ex` - Adapter option definitions/docs.
+- `lib/nebulex/adapters/redis/client.ex` - Redis client abstraction.
+- `lib/nebulex/adapters/redis/connection.ex` - Connection management.
+- `lib/nebulex/adapters/redis/pool.ex` - Connection pooling.
+- `lib/nebulex/adapters/redis/supervisor.ex` - Adapter supervision tree.
+- `lib/nebulex/adapters/redis/cluster.ex` - Redis Cluster mode support.
+- `lib/nebulex/adapters/redis/cluster/` - Cluster internals (config manager, keyslot, pools).
+- `lib/nebulex/adapters/redis/client_side_cluster.ex` - Client-side cluster mode support.
+- `lib/nebulex/adapters/redis/client_side_cluster/` - Client-side cluster internals (hash ring, pools).
+- `lib/nebulex/adapters/redis/serializer.ex` - Serialization behaviour.
+- `lib/nebulex/adapters/redis/helpers.ex` - Shared adapter utilities.
+- `lib/nebulex/adapters/redis/error_formatter.ex` - Error formatting.
+- `test/nebulex/adapters/redis/standalone_test.exs` - Standalone mode tests.
+- `test/nebulex/adapters/redis/cluster_test.exs` - Redis Cluster mode tests.
+- `test/nebulex/adapters/redis/client_side_cluster_test.exs` - Client-side cluster tests.
+- `test/nebulex/adapters/redis/client_test.exs` - Client abstraction tests.
+- `test/shared/` - Shared test cases (cache, queryable, info, command errors).
+- `README.md` - Public usage/configuration for this adapter.
+- `CHANGELOG.md` - Adapter release history.
+
 <!-- usage-rules-start -->
-<!-- nebulex:THIRD_PARTY_LICENSES-start -->
-## nebulex:THIRD_PARTY_LICENSES usage
-# Third-Party Licenses
+<!-- nebulex:workflow-start -->
+## nebulex:workflow usage
+# Agent Workflow
 
-This directory contains usage rules sourced from the following open-source projects.
+## Rule Index
 
----
+Start here, then read these at session start and refer back while coding:
 
-## UsageRules
+- `usage-rules/nebulex.md` - Nebulex-specific rules
+- `usage-rules/elixir-style.md` - Style guidelines
+- `usage-rules/elixir.md` - Core Elixir rules
 
-**Source**: https://github.com/ash-project/usage_rules
+> If these files are not found, check `AGENTS.md` or the local
+> `usage-rules/` folder instead.
 
-**Files affected**: `elixir.md` (lines 1-69)
+## Rule Precedence
 
-**License**: MIT License
+When rules conflict, prioritize them in this order:
 
-```
-MIT License
+1. `usage-rules/workflow.md`
+2. `usage-rules/nebulex.md`
+3. `usage-rules/elixir-style.md`
+4. `usage-rules/elixir.md`
 
-Copyright (c) 2025 usage_rules contributors
+> If these files are not found, apply the same precedence to the
+> corresponding sections in `AGENTS.md`.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+## Session Bootstrap
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+At the start of each session, quickly establish context:
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-```
+1. Run `git status --short` and `git diff --name-only` to check
+   local modifications and currently touched files.
+2. Run `git log --oneline -20` to see recent changes.
+3. Run `git branch -a` to see active branches and current branch.
+4. Read `README.md` and the latest section of `CHANGELOG.md`.
+5. Check `.tool-versions` or the `elixir` version in `mix.exs` for
+   supported Elixir/OTP versions.
 
----
+If on a feature branch, also run:
 
-## Phoenix Framework
+6. `git log --oneline main..HEAD` to see the branch's commits.
+7. `git diff main...HEAD` to understand the branch's full scope.
 
-**Source**: https://github.com/phoenixframework/phoenix
+When relevant to the task:
 
-**Files affected**: `elixir.md` (lines 71-184)
+8. Check open issues and PRs with `gh issue list` and `gh pr list`.
+   If `gh` is unavailable or unauthenticated, skip this step.
 
-**License**: MIT License
+## Current Project Status
 
-```
-MIT License
+- **Latest release**: check the latest section in `CHANGELOG.md`.
+- Read `CHANGELOG.md` for recent features, breaking changes, and
+  the project's direction.
+- Changelog policy: user-visible behavior changes should be documented;
+  internal refactors may be omitted before a release.
 
-Copyright (c) 2014 Chris McCord
+## PR Workflow
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+### Reviewing PRs
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+1. Read the PR description and all comments:
+   `gh pr view <number>` and `gh pr view <number> --comments`.
+2. Review the diff: `gh pr diff <number>`.
+3. Check `CHANGELOG.md` to understand if the change aligns with the
+   project's direction.
+4. Verify code follows `usage-rules/` conventions (Elixir patterns,
+   Nebulex-specific rules, style guidelines).
+5. Run the validation commands (see below) before approving.
+6. Provide constructive feedback referencing specific lines and
+   conventions.
+7. Structure review feedback as:
+   - findings first (ordered by severity, with file:line references),
+   - open questions/assumptions,
+   - brief summary last.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-```
+### Opening PRs
 
----
+1. Branch from `main` with a descriptive branch name
+   (e.g., `fix/some-bug`, `feat/cache-warming-support`).
+2. Update `CHANGELOG.md` under the appropriate section
+   (Enhancements, Bug fixes, Backward-incompatible changes).
+3. Run all validation commands before pushing.
+4. Reference related GitHub issues in the PR description
+   (e.g., "Closes #123").
+5. Use `gh pr create` with a clear title and description.
 
-## Elixir Style Guide
+## Commit Messages
 
-**Source**: https://github.com/christopheradams/elixir_style_guide
+Commit messages must follow the
+[Conventional Commits](https://www.conventionalcommits.org/) format:
 
-**Files affected**: `elixir-style.md`
-
-**License**: Creative Commons Attribution 3.0 Unported (CC-BY-3.0)
-
-This work is licensed under a Creative Commons Attribution 3.0 Unported License.
-
-https://creativecommons.org/licenses/by/3.0/
-
-Copyright (c) Christopher Adams and contributors.
-
-<!-- nebulex:THIRD_PARTY_LICENSES-end -->
-<!-- nebulex:elixir-start -->
-## nebulex:elixir usage
-# Elixir Core Usage Rules
-
-## Pattern Matching
-
-- Use pattern matching over conditional logic when possible
-- Prefer to match on function heads instead of using `if`/`else` or `case` in function bodies
-- `%{}` matches ANY map, not just empty maps. Use `map_size(map) == 0` guard to check for truly empty maps
-
-## Error Handling
-
-- Use `{:ok, result}` and `{:error, reason}` tuples for operations that can fail
-- Avoid raising exceptions for control flow
-- Use `with` for chaining operations that return `{:ok, _}` or `{:error, _}`
-- Bang functions (`!`) that explicitly raise exceptions on failure are acceptable (e.g., `File.read!/1`, `String.to_integer!/1`)
-- Avoid rescuing exceptions unless for a very specific case (e.g., cleaning up resources, logging critical errors)
-
-## Common Mistakes to Avoid
-
-- Elixir has no `return` statement, nor early returns. The last expression in a block is always returned.
-- Don't use `Enum` functions on large collections when `Stream` is more appropriate
-- Avoid nested `case` statements - refactor to a single `case`, `with` or separate functions
-- Don't use `String.to_atom/1` on user input (memory leak risk)
-- Lists and enumerables cannot be indexed with brackets. Use pattern matching or `Enum` functions
-- Prefer `Enum` functions like `Enum.reduce` over recursion
-- When recursion is necessary, prefer to use pattern matching in function heads for base case detection
-- Using the process dictionary is typically a sign of unidiomatic code
-- Only use macros if explicitly requested
-- There are many useful standard library functions, prefer to use them where possible
-
-## Function Design
-
-- Use guard clauses: `when is_binary(name) and byte_size(name) > 0`
-- Prefer multiple function clauses over complex conditional logic
-- Name functions descriptively: `calculate_total_price/2` not `calc/2`
-- Predicate function names should not start with `is` and should end in a question mark.
-- Names like `is_thing` should be reserved for guards
-
-## Data Structures
-
-- Use structs over maps when the shape is known: `defstruct [:name, :age]`
-- Prefer keyword lists for options: `[timeout: 5000, retries: 3]`
-- Use maps for dynamic key-value data
-- Prefer to prepend to lists `[new | list]` not `list ++ [new]`
-
-## Mix Tasks
-
-- Use `mix help` to list available mix tasks
-- Use `mix help task_name` to get docs for an individual task
-- Read the docs and options fully before using tasks
-
-## Testing
-
-- Run tests in a specific file with `mix test test/my_test.exs` and a specific test with the line number `mix test path/to/test.exs:123`
-- Limit the number of failed tests with `mix test --max-failures n`
-- Use `@tag` to tag specific tests, and `mix test --only tag` to run only those tests
-- Use `assert_raise` for testing expected exceptions: `assert_raise ArgumentError, fn -> invalid_function() end`
-- Use `mix help test` to for full documentation on running tests
-
-## Debugging
-
-- Use `dbg/1` to print values while debugging. This will display the formatted value and other relevant information in the console.
-
-<!--
-The following rules are sourced from [Phoenix Framework](https://github.com/phoenixframework/phoenix),
-with modifications and additions.
-
-Copyright (c) 2014 Chris McCord, licensed under the MIT License.
--->
-## Elixir guidelines
-
-- Elixir lists **do not support index based access via the access syntax**
-
-  **Never do this (invalid)**:
-
-      i = 0
-      mylist = ["blue", "green"]
-      mylist[i]
-
-  Instead, **always** use `Enum.at`, pattern matching, or `List` for index based list access, ie:
-
-      i = 0
-      mylist = ["blue", "green"]
-      Enum.at(mylist, i)
-
-- Elixir variables are immutable, but can be rebound, so for block expressions like `if`, `case`, `cond`, etc
-  you *must* bind the result of the expression to a variable if you want to use it and you CANNOT rebind the result inside the expression, ie:
-
-      # INVALID: we are rebinding inside the `if` and the result never gets assigned
-      if connected?(socket) do
-        socket = assign(socket, :val, val)
-      end
-
-      # VALID: we rebind the result of the `if` to a new variable
-      socket =
-        if connected?(socket) do
-          assign(socket, :val, val)
-        end
-
-- **Never** nest multiple modules in the same file as it can cause cyclic dependencies and compilation errors
-- **Never** use map access syntax (`changeset[:field]`) on structs as they do not implement the Access behaviour by default. For regular structs, you **must** access the fields directly, such as `my_struct.field` or use higher level APIs that are available on the struct if they exist, `Ecto.Changeset.get_field/2` for changesets
-- Elixir's standard library has everything necessary for date and time manipulation. Familiarize yourself with the common `Time`, `Date`, `DateTime`, and `Calendar` interfaces by accessing their documentation as necessary. **Never** install additional dependencies unless asked or for date/time parsing (which you can use the `date_time_parser` package)
-- Don't use `String.to_atom/1` on user input (memory leak risk)
-- Predicate function names should not start with `is_` and should end in a question mark. Names like `is_thing` should be reserved for guards
-- Elixir's builtin OTP primitives like `DynamicSupervisor` and `Registry`, require names in the child spec, such as `{DynamicSupervisor, name: MyApp.MyDynamicSup}`, then you can use `DynamicSupervisor.start_child(MyApp.MyDynamicSup, child_spec)`
-- Use `Task.async_stream(collection, callback, options)` for concurrent enumeration with back-pressure. The majority of times you will want to pass `timeout: :infinity` as option
-
-- The `in` operator in guards requires a compile-time known value on the right side (literal list or range)
-
-  **Never do this (invalid)**: using a variable which is unknown at compile time
-
-      def t(x, y) when x in y, do: {x, y}
-
-  This will raise `ArgumentError: invalid right argument for operator "in", it expects a compile-time proper list or compile-time range on the right side when used in guard expressions`
-
-  **Valid**: use a known value for the list or range
-
-      def t(x, y) when x in [1, 2, 3], do: {x, y}
-      def t(x, y) when x in 1..10, do: {x, y}
-
-- In tests, avoid using `assert` with pattern matching when the expected value is fully known. Use direct equality comparison instead for clearer test failures
-
-  **Avoid**:
-
-      assert {:ok, ^value} = testing()
-      assert {:error, :not_found} = fetch()
-
-  **Prefer**:
-
-      assert testing() == {:ok, value}
-      assert fetch() == {:error, :not_found}
-
-  **Exception**: Pattern matching is acceptable when you only want to assert part of a complex structure
-
-      # OK: asserting only specific fields of a large struct/map
-      assert {:ok, %{id: ^id}} = get_order()
-
-- In tests, avoid duplicating test data across multiple tests. Use constants, fixture files, or private fixture functions instead
-
-  **Avoid**: Duplicating test data
-
-      test "validates user email" do
-        assert valid_email?("user@example.com")
-      end
-
-      test "creates user" do
-        assert create_user("user@example.com")
-      end
-
-  **Prefer**: Use module attributes for constants or fixture functions
-
-      @valid_email "user@example.com"
-
-      test "validates user email" do
-        assert valid_email?(@valid_email)
-      end
-
-      test "creates user" do
-        assert create_user(@valid_email)
-      end
-
-  For complex data structures, create fixture functions:
-
-      defp user_fixture(attrs \\ %{}) do
-        %User{
-          name: "John Doe",
-          email: "john@example.com",
-          age: 30
-        }
-        |> Map.merge(attrs)
-      end
-
-## Mix guidelines
-
-- Read the docs and options before using tasks (by using `mix help task_name`)
-- To debug test failures, run tests in a specific file with `mix test test/my_test.exs` or run all previously failed tests with `mix test --failed`
-- `mix deps.clean --all` is **almost never needed**. **Avoid** using it unless you have good reason
-
-<!-- nebulex:elixir-end -->
-<!-- nebulex:elixir-style-start -->
-## nebulex:elixir-style usage
-# Elixir Style
-
-> Most of these guidelines are based on
-> [The Elixir Style Guide](https://github.com/christopheradams/elixir_style_guide)
-> by Christopher Adams, licensed under
-> [CC-BY-3.0](https://creativecommons.org/licenses/by/3.0/).
-
-## Formatting
-
-### Whitespace
-
-- Use blank lines between `def`s to break up a function into logical paragraphs.
-  For example:
-
-  ```elixir
-  def some_function(some_data) do
-    some_data |> other_function() |> List.first()
-  end
-
-  def some_function do
-    result
-  end
-
-  def some_other_function do
-    another_result
-  end
-
-  def a_longer_function do
-    one
-    two
-
-    three
-    four
-  end
-  ```
-
-- If the function head and `do:` clause are too long to fit on the same line, put `do:` on a new line, indented one level more than the previous line. For example:
-
-  ```elixir
-  def some_function([:foo, :bar, :baz] = args),
-    do: Enum.map(args, fn arg -> arg <> " is on a very long line!" end)
-  ```
-
-  When the `do:` clause starts on its own line, treat it as a multiline function by separating it with blank lines.
-
-  ```elixir
-  # not preferred
-  def some_function([]), do: :empty
-  def some_function(_),
-    do: :very_long_line_here
-
-  # preferred
-  def some_function([]), do: :empty
-
-  def some_function(_),
-    do: :very_long_line_here
-  ```
-
-- Add a blank line after a multiline assignment as a visual cue that the assignment is 'over'. For example:
-
-  ```elixir
-  # not preferred
-  some_string =
-    "Hello"
-    |> String.downcase()
-    |> String.trim()
-  another_string <> some_string
-
-  # preferred
-  some_string =
-    "Hello"
-    |> String.downcase()
-    |> String.trim()
-
-  another_string <> some_string
-  ```
-
-  ```elixir
-  # also not preferred
-  something =
-    if x == 2 do
-      "Hi"
-    else
-      "Bye"
-    end
-  String.downcase(something)
-
-  # preferred
-  something =
-    if x == 2 do
-      "Hi"
-    else
-      "Bye"
-    end
-
-  String.downcase(something)
-  ```
-
-### Parentheses
-
-- Use parentheses when defining a type.
-
-  ```elixir
-  # not preferred
-  @type name :: atom
-
-  # preferred
-  @type name() :: atom
-  ```
-
-## Gneral guidelines
-
-The rules in this section may not be applied by the code formatter, but they are generally preferred practice.
-
-### Expressions
-
-- Run single-line `def`s that match for the same function together, but separate multiline `def`s with a blank line. For example:
-
-  ```elixir
-  def some_function(nil), do: {:error, "No Value"}
-  def some_function([]), do: :ok
-
-  def some_function([first | rest]) do
-    some_function(rest)
-  end
-  ```
-
-- If you have more than one multiline `def`, do not use single-line `def`s. For example:
-
-  ```elixir
-  def some_function(nil) do
-    {:error, "No Value"}
-  end
-
-  def some_function([]) do
-    :ok
-  end
-
-  def some_function([first | rest]) do
-    some_function(rest)
-  end
-
-  def some_function([first | rest], opts) do
-    some_function(rest, opts)
-  end
-  ```
-
-- Use the pipe operator to chain functions together. For example:
-
-  ```elixir
-  # not preferred
-  String.trim(String.downcase(some_string))
-
-  # preferred
-  some_string |> String.downcase() |> String.trim()
-
-  # Multiline pipelines are not further indented
-  some_string
-  |> String.downcase()
-  |> String.trim()
-
-  # Multiline pipelines on the right side of a pattern match
-  # should be indented on a new line
-  sanitized_string =
-    some_string
-    |> String.downcase()
-    |> String.trim()
-  ```
-
-- Avoid using the pipe operator just once, unless the first expression is a function. For example:
-
-  ```elixir
-  # not preferred
-  some_string |> String.downcase()
-
-  # preferred
-  String.downcase(some_string)
-
-  # not preferred
-  Version.parse(System.version())
-
-  # preferred
-  System.version() |> Version.parse()
-  ```
-
-- Use parentheses when a `def` has arguments, and omit them when it doesn't. For example:
-
-  ```elixir
-  # not preferred
-  def some_function arg1, arg2 do
-    # body omitted
-  end
-
-  def some_function() do
-    # body omitted
-  end
-
-  # preferred
-  def some_function(arg1, arg2) do
-    # body omitted
-  end
-
-  def some_function do
-    # body omitted
-  end
-  ```
-
-- Use `do:` for single line `if/unless` statements.
-
-  ```elixir
-  # preferred
-  if some_condition, do: # some_stuff
-  ```
-
-- Use `true` as the last condition of the `cond` special form when you need a clause that always matches.
-
-  ```elixir
-  # not preferred
-  cond do
-    1 + 2 == 5 ->
-      "Nope"
-
-    1 + 3 == 5 ->
-      "Uh, uh"
-
-    :else ->
-      "OK"
-  end
-
-  # preferred
-  cond do
-    1 + 2 == 5 ->
-      "Nope"
-
-    1 + 3 == 5 ->
-      "Uh, uh"
-
-    true ->
-      "OK"
-  end
-  ```
-
-### Naming
-
-- Use `snake_case` for atoms, functions and variables.
-
-  ```elixir
-  # not preferred
-  :"some atom"
-  :SomeAtom
-  :someAtom
-
-  someVar = 5
-
-  def someFunction do
-    ...
-  end
-
-  # preferred
-  :some_atom
-
-  some_var = 5
-
-  def some_function do
-    ...
-  end
-  ```
-
-- Use `CamelCase` for modules (keep acronyms like HTTP, RFC, XML uppercase).
-
-  ```elixir
-  # not preferred
-  defmodule Somemodule do
-    ...
-  end
-
-  defmodule Some_Module do
-    ...
-  end
-
-  defmodule SomeXml do
-    ...
-  end
-
-  # preferred
-  defmodule SomeModule do
-    ...
-  end
-
-  defmodule SomeXML do
-    ...
-  end
-  ```
-
-- Functions that return a boolean (`true` or `false`) should be named with a trailing question mark.
-
-  ```elixir
-  def cool?(var) do
-    String.contains?(var, "cool")
-  end
-  ```
-
-- Boolean checks that can be used in guard clauses (custom guards) should be named with an `is_` prefix.
-
-  ```elixir
-  defguard is_cool(var) when var == "cool"
-  defguard is_very_cool(var) when var == "very cool"
-  ```
-
-### Comments
-
-- Write expressive code and try to convey your program's intention through control-flow, structure and naming.
-
-- Comments longer than a word are capitalized, and sentences use punctuation. Use one space after periods.
-
-```elixir
-# not preferred
-# these lowercase comments are missing punctuation
-
-# preferred
-# Capitalization example
-# Use punctuation for complete sentences.
+```text
+type(scope): short summary
 ```
 
-- Limit comment lines to 80 characters.
+### Allowed Types
 
-#### Comment Annotations
+- `feat`
+- `fix`
+- `refactor`
+- `docs`
+- `test`
+- `chore`
+- `perf`
+- `ci`
+- `build`
 
-- Annotations should usually be written on the line immediately above the relevant code.
+### Rules
 
-- The annotation keyword is uppercase, and is followed by a colon and a space, then a note describing the problem.
+1. Use imperative mood in the summary.
+2. Keep the summary lowercase and do not end it with a period.
+3. Use a scope when it adds clarity (e.g., `cache`, `decorators`,
+   `telemetry`, `workflow`).
+4. Keep the first line concise (ideally <= 72 chars).
 
-```elixir
-# TODO: Deprecate in v1.5.
-def some_function(arg), do: {:ok, arg}
+### Examples
+
+- `feat(cache): add runtime option validation for ttl`
+- `fix(decorators): handle nested context pop safely`
+- `chore(workflow): refine session bootstrap steps`
+
+## Validation Commands
+
+Before submitting or approving any code change, run:
+
+```bash
+# Quick targeted validation (recommended first)
+mix test path/to/changed_test.exs
+
+# Format check
+mix format --check-formatted
+
+# Static analysis
+mix credo --strict
+
+# Documentation (if docs were changed)
+mix docs
 ```
 
-- In cases where the problem is so obvious that any documentation would be redundant, annotations may be left with no note. This usage should be the exception and not the rule.
+Then run full-suite validation before merge/release:
 
-```elixir
-start_task()
-
-# FIXME
-Process.sleep(5000)
+```bash
+mix test.ci
 ```
 
-- Use `TODO` to note missing features or functionality that should be added at a later date.
-
-- Use `FIXME` to note broken code that needs to be fixed.
-
-- Use `OPTIMIZE` to note slow or inefficient code that may cause performance problems.
-
-- Use `HACK` to note code smells where questionable coding practices were used and should be refactored away.
-
-- Use `REVIEW` to note anything that should be looked at to confirm it is working as intended. For example: `REVIEW: Are we sure this is how the client does X currently?`
-
-- Use other custom annotation keywords if it feels appropriate, but be sure to document them in your project's `README` or similar.
-
-### Comment Constants
-
-- When defining a constant, pick a descriptive name that reflects the intention or usage of the constant and add a comment with a short description.
-
-**Not preferred:**
-
-```elixir
-@retries 10
-```
-
-**Preferred:**
-
-```elixir
-# Default HTTP retries
-@http_retries 10
-```
-
-- When the constant is a timeout in milliseconds, use `:timer` module instead of explicit value (e.g., `:timer.seconds/1`, `:timer.minutes/1`, `:timer.hours/1`).
-
-**Not preferred:**
-
-```elixir
-# Default HTTP request timeout in milliseconds
-@http_rrequest_timeout 10_000
-```
-
-**Preferred:**
-
-```elixir
-# Default HTTP request timeout in milliseconds
-@http_rrequest_timeout :timer.seconds(10)
-```
-
-- When the constant is a list of atoms or strings, a regex, or anything that can be expressed using a "Sigils", then use "Sigils".
-
-**Not preferred:**
-
-```elixir
-# User types
-@user_types [:admin, :editor, :customer]
-
-# Supported country codes
-@user_types ["US", "ES", "CO"]
-```
-
-**Preferred:**
-
-```elixir
-# User types
-@user_types ~w(admin editor customer)a
-
-# Supported country codes
-@user_types ~w(US ES CO)
-```
-
-### Modules
-
-- List module attributes, directives, and macros in the following order:
-
-  1. `@moduledoc`
-  2. `@behaviour`
-  3. `use`
-  4. `import`
-  5. `require`
-  6. `alias`
-  7. `@module_attribute`
-  8. `defstruct`
-  9. `@type`
-  10. `@callback`
-  11. `@macrocallback`
-  12. `@optional_callbacks`
-  13. `defmacro`, `defmodule`, `defguard`, `def`, etc.
-
-  Add a blank line between each grouping, and sort the terms (like module names) alphabetically. Here's an overall example of how you should order things in your modules:
-
-  ```elixir
-  defmodule MyModule do
-    @moduledoc """
-    An example module
-    """
-
-    @behaviour MyBehaviour
-
-    use GenServer
-
-    import Something
-    import SomethingElse
-
-    require Integer
-
-    alias My.Long.Module.Name
-    alias My.Other.Module.Example
-
-    @module_attribute :foo
-    @other_attribute 100
-
-    defstruct [:name, params: []]
-
-    @type params :: [{binary, binary}]
-
-    @callback some_function(term) :: :ok | {:error, term}
-
-    @macrocallback macro_name(term) :: Macro.t()
-
-    @optional_callbacks macro_name: 1
-
-    @doc false
-    defmacro __using__(_opts), do: :no_op
-
-    @doc """
-    Determines when a term is `:ok`. Allowed in guards.
-    """
-    defguard is_ok(term) when term == :ok
-
-    @impl true
-    def init(state), do: {:ok, state}
-
-    # Define other functions here.
-  end
-  ```
-
-- Use the `__MODULE__` pseudo variable when a module refers to itself. This avoids having to update any self-references when the module name changes.
-
-  ```elixir
-  defmodule SomeProject.SomeModule do
-    defstruct [:name]
-
-    def name(%__MODULE__{name: name}), do: name
-  end
-
-### Typespecs
-
-- Place `@typedoc` and `@type` definitions together, and separate each pair with a blank line.
-
-  ```elixir
-  defmodule SomeModule do
-    @moduledoc false
-
-    @typedoc "The name"
-    @type name() :: atom()
-
-    @typedoc "The result"
-    @type result() :: {:ok, any()} | {:error, any()}
-
-    ...
-  end
-  ```
-
-- Name the main type for a module `t()`, for example: the type specification for a struct.
-
-  ```elixir
-  defstruct name: nil, params: []
-
-  @typedoc "The type for ..."
-  @type t() :: %__MODULE__{
-          name: String.t() | nil,
-          params: Keyword.t()
-        }
-  ```
-
-- Place specifications right before the function definition, after the `@doc`, without separating them by a blank line.
-
-  ```elixir
-  @doc """
-  Some function description.
-  """
-  @spec some_function(any()) :: result()
-  def some_function(some_data) do
-    {:ok, some_data}
-  end
-
-### Structs
-
-- Use a list of atoms for struct fields that default to `nil`, followed by the other keywords.
-
-  ```elixir
-  # not preferred
-  defstruct name: nil, params: nil, active: true
-
-  # preferred
-  defstruct [:name, :params, active: true]
-  ```
-
-- Omit square brackets when the argument of a `defstruct` is a keyword list.
-
-  ```elixir
-  # not preferred
-  defstruct [params: [], active: true]
-
-  # preferred
-  defstruct params: [], active: true
-
-  # required - brackets are not optional, with at least one atom in the list
-  defstruct [:name, params: [], active: true]
-  ```
-
-- If a struct definition spans multiple lines, put each element on its own line, keeping the elements aligned.
-
-  ```elixir
-  defstruct foo: "test",
-            bar: true,
-            baz: false,
-            qux: false,
-            quux: 1
-  ```
-
-  If a multiline struct requires brackets, format it as a multiline list:
-
-  ```elixir
-  defstruct [
-    :name,
-    params: [],
-    active: true
-  ]
-  ```
-
-### Exceptions
-
-- Make exception names end with a trailing `Error`.
-
-  ```elixir
-  # not preferred
-  defmodule BadHTTPCode do
-    defexception [:message]
-  end
-
-  defmodule BadHTTPCodeException do
-    defexception [:message]
-  end
-
-  # preferred
-  defmodule BadHTTPCodeError do
-    defexception [:message]
-  end
-  ```
-
-- Use lowercase error messages when raising exceptions, with no trailing punctuation.
-
-  ```elixir
-  # not preferred
-  raise ArgumentError, "This is not valid."
-
-  # preferred
-  raise ArgumentError, "this is not valid"
-  ```
-
-### Collections
-
-- Always use the special syntax for keyword lists.
-
-  ```elixir
-  # not preferred
-  some_value = [{:a, "baz"}, {:b, "qux"}]
-
-  # preferred
-  some_value = [a: "baz", b: "qux"]
-  ```
-
-- Use the shorthand key-value syntax for maps when all of the keys are atoms.
-
-  ```elixir
-  # not preferred
-  %{:a => 1, :b => 2, :c => 0}
-
-  # preferred
-  %{a: 1, b: 2, c: 3}
-  ```
-
-- Use the verbose key-value syntax for maps if any key is not an atom.
-
-  ```elixir
-  # not preferred
-  %{"c" => 0, a: 1, b: 2}
-
-  # preferred
-  %{:a => 1, :b => 2, "c" => 0}
-  ```
-
-### Testing
-
-- When writing ExUnit assertions, put the expression being tested to the left of the operator, and the expected result to the right, unless the assertion is a pattern match.
-
-  ```elixir
-  # not preferred
-  assert true == actual_function(1)
-
-  # preferred
-  assert actual_function(1) == true
-
-  # required - the assertion is a pattern match, and the `expected` variable is used later
-  assert {:ok, expected} = actual_function(3)
-  assert expected.atom == :atom
-  assert expected.int == 123
-
-  # preferred - if the right side is known, even it it is a tuple
-  assert actual_function(11) == {:ok, %{atom: :atom, int: 123}}
-
-  # preferred - if the right side is known (using a variable)
-  expected = %{atom: :atom, int: 123}
-  assert actual_function(11) == {:ok, expected}
-  ```
-
-## Extra guidelines
-
-- Use a blank line for the return or final statement (unless it is a single line).
-
-  **Avoid**:
-
-      def some_function(arg) do
-        Logger.info("Arg: #{inspect(some_data)}")
-        :ok
-      end
-
-  **Prefer**:
-
-      def some_function(some_data) do
-        Logger.info("Arg: #{inspect(some_data)}")
-
-        :ok
-      end
-
-- Use multi-line when a function returns with a pipe.
-
-  **Avoid**:
-
-      def some_function(some_data) do
-        some_data |> other_function() |> List.first()
-      end
-
-  **Prefer**:
-
-      def some_function(some_data) do
-        some_data
-        |> other_function()
-        |> List.first()
-      end
-
-- Use `with` when only one case has to be handled, either the success or the error.
-
-  **Avoid**: `case` forwarding the same result
-
-      case some_call() do
-        :ok ->
-          :ok
-
-        {:error, reason} = error ->
-          Logger.error("Error: #{inspect(reason)}")
-
-          error
-      end
-
-  **Prefer**: `with` handling only the needed case
-
-      with {:error, reason} = error <- some_call() do
-        Logger.error("Error: #{inspect(reason)}")
-
-        error
-      end
-
-<!-- nebulex:elixir-style-end -->
+<!-- nebulex:workflow-end -->
 <!-- nebulex:nebulex-start -->
 ## nebulex:nebulex usage
 # Nebulex Project-Specific Usage Rules
@@ -1006,13 +199,39 @@ provides:
 - Event streaming via `Nebulex.Streams` for distributed invalidation.
 - Support for TTL, eviction policies, transactions, and more.
 
+## Key Files
+
+| Path | Purpose |
+|------|---------|
+| `lib/nebulex/cache.ex` | Main Cache API |
+| `lib/nebulex/cache/` | Cache feature modules (KV, Options, etc.) |
+| `lib/nebulex/adapter.ex` | Adapter behaviour and macros |
+| `lib/nebulex/adapters/` | Built-in adapter modules in core (e.g., Nil, common helpers) |
+| `lib/nebulex/caching/decorators.ex` | Decorator implementation |
+| `lib/nebulex/caching/` | Caching internals (Context, Runtime) |
+| `lib/nebulex/event.ex` | Cache event types |
+| `lib/nebulex/telemetry.ex` | Telemetry instrumentation |
+| `lib/nebulex/utils.ex` | Shared utilities |
+| `mix.exs` | Dependencies and project config |
+| `CHANGELOG.md` | Release history and breaking changes |
+| `test/` | Test suite (mirrors `lib/` structure) |
+| `guides/` | User-facing guides, behavioral references, and examples |
+| `guides/introduction/` | Getting started, available adapters |
+| `guides/learning/` | Declarative caching, cache patterns, adapter creation, info API |
+| `guides/upgrading/v3.0.md` | v3 migration guide |
+
 ## Package Structure (v3)
 
 Nebulex v3 separates adapters into dedicated packages:
-- `nebulex` - Core library with Cache API, decorators, and behaviours.
-- `nebulex_local` - Local cache adapter (`Nebulex.Adapters.Local`).
-- `nebulex_distributed` - Distributed adapters (`Nebulex.Adapters.Partitioned`,
-  `Nebulex.Adapters.Multilevel`, `Nebulex.Adapters.Coherent`).
+- `nebulex` - Core.
+- `nebulex_local` - Local cache adapter.
+- `nebulex_distributed` - Partitioned, multilevel, and coherent adapters.
+- `nebulex_redis_adapter` - Adapter for Redis (including Redis Cluster).
+- `nebulex_adapters_cachex` - Adapter for `cachex` library.
+- `nebulex_disk_lfu` - Persistent disk-based cache adapter with LFU eviction for Nebulex.
+
+> See `guides/introduction/nbx-adapters.md` for more information about the
+> available adapters.
 
 Add the required dependencies to your `mix.exs`:
 
@@ -1399,7 +618,7 @@ The `Nebulex.Adapters.Coherent` adapter uses `Nebulex.Streams` to provide
 local caching with distributed invalidation:
 
 - Each node maintains its own local cache.
-- Write operations trigger invalidation events via Phoenix.PubSub.
+- Write operations trigger invalidation events via `Phoenix.PubSub`.
 - Other nodes delete the invalidated keys from their local caches.
 - Next read on other nodes results in a cache miss, fetching fresh data.
 
@@ -1540,7 +759,7 @@ end
   values.
 - Store references in a local cache and values in a remote cache (e.g., Redis)
   for optimization.
-- Set TTL for references to prevent dangling keys
+- Set TTL for references to prevent dangling keys.
 - Use external references with `keyref(key, cache: AnotherCache)` for
   cross-cache references.
 
@@ -1557,23 +776,22 @@ end
 ### Module Documentation
 
 - Start with a clear `@moduledoc` explaining the purpose and main features,
-  except the modules using `NimbleOptions`, since they are documenting options.
+  except modules that use `NimbleOptions` for option documentation.
 - Options documented using `NimbleOptions` should provide functions to insert
   that documentation into the module docs. Therefore, it is not required to
   document an option in the `moduledoc` or in the function `@doc` if it is
   already inserted using `NimbleOptions`. For example,
   `#{Nebulex.Cache.Options.start_link_options_docs()}`.
-- Options docummented using
 - Include usage examples in module documentation.
 - Document all compile-time options.
 - Document all runtime shared options.
 - Provide telemetry event documentation with measurements and metadata.
 - The maximum text length is 80 characters, and you should aim to adhere to this
   limit. However, there are special cases where exceeding it is acceptable. For
-  example, you may exceed the limit for a link (e.g., ["my link"](https://github.com/elixir-nebulex))
+  example, you may exceed the limit for a link (e.g., [my link](https://github.com/elixir-nebulex))
   or a code snippet that only exceeds the limit by a few characters (e.g., 1 or 2).
-  If a code snippet exceeds the 80-character limit by more than 1 or 2 haracters,
-  format it using the Elixir formatter.
+  If a code snippet exceeds the 80-character limit by more than 1 or 2
+  characters, format it using the Elixir formatter.
 - When you make a change to the documentation, use `mix docs` to validate it.
 
 ### Function Documentation
@@ -1583,25 +801,22 @@ end
 - Provide examples in function documentation using doctests when applicable.
 - Document all options with descriptions and default values.
 - Group related functions using `@doc group: "Group Name"`.
-- The maximum text length is 80 characters, and you should aim to adhere to this.
-  limit. However, there are special cases where exceeding it is acceptable. For
-  example, you may exceed the limit for a link (e.g., ["my link"](https://github.com/elixir-nebulex))
-  or a code snippet that only exceeds the limit by a few characters (e.g., 1 or 2).
-  If a code snippet exceeds the 80-character limit by more than 1 or 2 haracters,
-  format it using the Elixir formatter.
+- Follow the same 80-character line-length guidance described in
+  "Module Documentation," including the same exceptions for links and short
+  formatter-friendly code snippets.
 - When you make a change to the documentation, use `mix docs` to validate it.
 
 ### Code Comments
 
 - Avoid obvious comments; code should be self-explanatory.
 - Use comments for complex algorithms or non-obvious business logic. Use a
-  sigle `#` for code comments. E.g., `# My comment ...`.
-- For separating sectionn in a module, use `##`. E.g., `## API`,
+  single `#` for code comments. E.g., `# My comment ...`.
+- For separating sections in a module, use `##`. E.g., `## API`,
   `## Private functions`, etc.
 - Mark internal functions with `@doc false` or `@moduledoc false`.
 - Use `# Inline common instructions` followed by
   `@compile inline: [function_name: arity]`.
-- The maximum text length is 80 characters, use multiple lines if the comment.
+- The maximum text length is 80 characters; use multiple lines if the comment
   exceeds the limit.
 
 ## Naming Conventions
@@ -1615,10 +830,10 @@ end
 
 ### Functions
 
-- Use descriptive function names: `fetch/2`, `put/3`, `delete/2`, `has_key?/1`.
+- Use descriptive function names: `fetch/2`, `put/3`, `delete/2`, `has_key?/2`.
 - Bang versions: `fetch!/2`, `put!/3`, `delete!/2`.
-- Private helpers: prefix with `do_` (e.g., `do_fetch/3`, `do_put/7`).
-- Predicate functions: suffix with `?` (e.g., `has_key?/1`, `expired?/2`).
+- Private helpers: prefix with `do_` (e.g., `do_fetch`, `do_put`).
+- Predicate functions: suffix with `?` (e.g., `has_key?/2`, `expired?/2`).
 
 ### Variables
 
@@ -1721,4 +936,984 @@ end
 - Document all dependencies in README with their purpose.
 
 <!-- nebulex:nebulex-end -->
+<!-- nebulex:elixir-style-start -->
+## nebulex:elixir-style usage
+# Elixir Style
+
+> Most of these guidelines are based on
+> [The Elixir Style Guide](https://github.com/christopheradams/elixir_style_guide)
+> by Christopher Adams, licensed under
+> [CC-BY-3.0](https://creativecommons.org/licenses/by/3.0/).
+
+## Formatting
+
+### Whitespace
+
+- Use blank lines between `def`s to break up a function into logical paragraphs.
+  For example:
+
+  ```elixir
+  def some_function(some_data) do
+    some_data |> other_function() |> List.first()
+  end
+
+  def some_function do
+    result
+  end
+
+  def some_other_function do
+    another_result
+  end
+
+  def a_longer_function do
+    one
+    two
+
+    three
+    four
+  end
+  ```
+
+- If the function head and `do:` clause are too long to fit on the same line, put `do:` on a new line, indented one level more than the previous line. For example:
+
+  ```elixir
+  def some_function([:foo, :bar, :baz] = args),
+    do: Enum.map(args, fn arg -> arg <> " is on a very long line!" end)
+  ```
+
+  When the `do:` clause starts on its own line, treat it as a multiline function by separating it with blank lines.
+
+  ```elixir
+  # not preferred
+  def some_function([]), do: :empty
+  def some_function(_),
+    do: :very_long_line_here
+
+  # preferred
+  def some_function([]), do: :empty
+
+  def some_function(_),
+    do: :very_long_line_here
+  ```
+
+- Add a blank line after a multiline assignment as a visual cue that the assignment is 'over'. For example:
+
+  ```elixir
+  # not preferred
+  some_string =
+    "Hello"
+    |> String.downcase()
+    |> String.trim()
+  another_string <> some_string
+
+  # preferred
+  some_string =
+    "Hello"
+    |> String.downcase()
+    |> String.trim()
+
+  another_string <> some_string
+  ```
+
+  ```elixir
+  # also not preferred
+  something =
+    if x == 2 do
+      "Hi"
+    else
+      "Bye"
+    end
+  String.downcase(something)
+
+  # preferred
+  something =
+    if x == 2 do
+      "Hi"
+    else
+      "Bye"
+    end
+
+  String.downcase(something)
+  ```
+
+### Parentheses
+
+- Use parentheses when defining a type.
+
+  ```elixir
+  # not preferred
+  @type name :: atom
+
+  # preferred
+  @type name() :: atom
+  ```
+
+## General guidelines
+
+The rules in this section may not be applied by the code formatter, but they are generally preferred practice.
+
+### Expressions
+
+- Keep single-line `def` clauses of the same function together, but separate multiline `def`s with a blank line. For example:
+
+  ```elixir
+  def some_function(nil), do: {:error, "No Value"}
+  def some_function([]), do: :ok
+
+  def some_function([first | rest]) do
+    some_function(rest)
+  end
+  ```
+
+- If you have more than one multiline `def`, do not use single-line `def`s. For example:
+
+  ```elixir
+  def some_function(nil) do
+    {:error, "No Value"}
+  end
+
+  def some_function([]) do
+    :ok
+  end
+
+  def some_function([first | rest]) do
+    some_function(rest)
+  end
+
+  def some_function([first | rest], opts) do
+    some_function(rest, opts)
+  end
+  ```
+
+- Use the pipe operator to chain functions together. For example:
+
+  ```elixir
+  # not preferred
+  String.trim(String.downcase(some_string))
+
+  # preferred
+  some_string |> String.downcase() |> String.trim()
+
+  # Multiline pipelines are not further indented
+  some_string
+  |> String.downcase()
+  |> String.trim()
+
+  # Multiline pipelines on the right side of a pattern match
+  # should be indented on a new line
+  sanitized_string =
+    some_string
+    |> String.downcase()
+    |> String.trim()
+  ```
+
+- Avoid using the pipe operator just once, unless the first expression is a function. For example:
+
+  ```elixir
+  # not preferred
+  some_string |> String.downcase()
+
+  # preferred
+  String.downcase(some_string)
+
+  # not preferred
+  Version.parse(System.version())
+
+  # preferred
+  System.version() |> Version.parse()
+  ```
+
+- Use parentheses when a `def` has arguments, and omit them when it doesn't. For example:
+
+  ```elixir
+  # not preferred
+  def some_function arg1, arg2 do
+    # body omitted
+  end
+
+  def some_function() do
+    # body omitted
+  end
+
+  # preferred
+  def some_function(arg1, arg2) do
+    # body omitted
+  end
+
+  def some_function do
+    # body omitted
+  end
+  ```
+
+- Use `do:` for single-line `if/unless` statements.
+
+  ```elixir
+  # preferred
+  if some_condition, do: # some_stuff
+  ```
+
+- Use `true` as the last condition of the `cond` special form when you need a clause that always matches.
+
+  ```elixir
+  # not preferred
+  cond do
+    1 + 2 == 5 ->
+      "Nope"
+
+    1 + 3 == 5 ->
+      "Uh, uh"
+
+    :else ->
+      "OK"
+  end
+
+  # preferred
+  cond do
+    1 + 2 == 5 ->
+      "Nope"
+
+    1 + 3 == 5 ->
+      "Uh, uh"
+
+    true ->
+      "OK"
+  end
+  ```
+
+### Naming
+
+- Use `snake_case` for atoms, functions and variables.
+
+  ```elixir
+  # not preferred
+  :"some atom"
+  :SomeAtom
+  :someAtom
+
+  someVar = 5
+
+  def someFunction do
+    ...
+  end
+
+  # preferred
+  :some_atom
+
+  some_var = 5
+
+  def some_function do
+    ...
+  end
+  ```
+
+- Use `CamelCase` for modules (keep acronyms like HTTP, RFC, XML uppercase).
+
+  ```elixir
+  # not preferred
+  defmodule Somemodule do
+    ...
+  end
+
+  defmodule Some_Module do
+    ...
+  end
+
+  defmodule SomeXml do
+    ...
+  end
+
+  # preferred
+  defmodule SomeModule do
+    ...
+  end
+
+  defmodule SomeXML do
+    ...
+  end
+  ```
+
+- Functions that return a boolean (`true` or `false`) should be named with a trailing question mark.
+
+  ```elixir
+  def cool?(var) do
+    String.contains?(var, "cool")
+  end
+  ```
+
+- Boolean checks that can be used in guard clauses (custom guards) should be named with an `is_` prefix.
+
+  ```elixir
+  defguard is_cool(var) when var == "cool"
+  defguard is_very_cool(var) when var == "very cool"
+  ```
+
+### Comments
+
+- Write expressive code and try to convey your program's intention through control-flow, structure and naming.
+
+- Comments longer than a word are capitalized, and sentences use punctuation. Use one space after periods.
+
+```elixir
+# not preferred
+# these lowercase comments are missing punctuation
+
+# preferred
+# Capitalization example
+# Use punctuation for complete sentences.
+```
+
+- Limit comment lines to 80 characters.
+
+#### Comment Annotations
+
+- Annotations should usually be written on the line immediately above the relevant code.
+
+- The annotation keyword is uppercase, and is followed by a colon and a space, then a note describing the problem.
+
+```elixir
+# TODO: Deprecate in v1.5.
+def some_function(arg), do: {:ok, arg}
+```
+
+- In cases where the problem is so obvious that any documentation would be redundant, annotations may be left with no note. This usage should be the exception and not the rule.
+
+```elixir
+start_task()
+
+# FIXME
+Process.sleep(5000)
+```
+
+- Use `TODO` to note missing features or functionality that should be added at a later date.
+
+- Use `FIXME` to note broken code that needs to be fixed.
+
+- Use `OPTIMIZE` to note slow or inefficient code that may cause performance problems.
+
+- Use `HACK` to note code smells where questionable coding practices were used and should be refactored away.
+
+- Use `REVIEW` to note anything that should be looked at to confirm it is working as intended. For example: `REVIEW: Are we sure this is how the client does X currently?`
+
+- Use other custom annotation keywords if it feels appropriate, but be sure to document them in your project's `README` or similar.
+
+### Comment Constants
+
+- When defining a constant, pick a descriptive name that reflects the intention or usage of the constant and add a comment with a short description.
+
+**Not preferred:**
+
+```elixir
+@retries 10
+```
+
+**Preferred:**
+
+```elixir
+# Default HTTP retries
+@http_retries 10
+```
+
+- When the constant is a timeout in milliseconds, use `:timer` module instead of explicit value (e.g., `:timer.seconds/1`, `:timer.minutes/1`, `:timer.hours/1`).
+
+**Not preferred:**
+
+```elixir
+# Default HTTP request timeout in milliseconds
+@http_request_timeout 10_000
+```
+
+**Preferred:**
+
+```elixir
+# Default HTTP request timeout in milliseconds
+@http_request_timeout :timer.seconds(10)
+```
+
+- When the constant is a list of atoms or strings, a regex, or anything that can be expressed using Sigils, then use Sigils.
+
+**Not preferred:**
+
+```elixir
+# User types
+@user_types [:admin, :editor, :customer]
+
+# Supported country codes
+@user_types ["US", "ES", "CO"]
+```
+
+**Preferred:**
+
+```elixir
+# User types
+@user_types ~w(admin editor customer)a
+
+# Supported country codes
+@user_types ~w(US ES CO)
+```
+
+### Modules
+
+- List module attributes, directives, and macros in the following order:
+
+  1. `@moduledoc`
+  2. `@behaviour`
+  3. `use`
+  4. `import`
+  5. `require`
+  6. `alias`
+  7. `@module_attribute`
+  8. `defstruct`
+  9. `@type`
+  10. `@callback`
+  11. `@macrocallback`
+  12. `@optional_callbacks`
+  13. `defmacro`, `defmodule`, `defguard`, `def`, etc.
+
+  Add a blank line between each grouping, and sort the terms (like module names) alphabetically. Here's an overall example of how you should order things in your modules:
+
+  ```elixir
+  defmodule MyModule do
+    @moduledoc """
+    An example module
+    """
+
+    @behaviour MyBehaviour
+
+    use GenServer
+
+    import Something
+    import SomethingElse
+
+    require Integer
+
+    alias My.Long.Module.Name
+    alias My.Other.Module.Example
+
+    @module_attribute :foo
+    @other_attribute 100
+
+    defstruct [:name, params: []]
+
+    @type params :: [{binary, binary}]
+
+    @callback some_function(term) :: :ok | {:error, term}
+
+    @macrocallback macro_name(term) :: Macro.t()
+
+    @optional_callbacks macro_name: 1
+
+    @doc false
+    defmacro __using__(_opts), do: :no_op
+
+    @doc """
+    Determines when a term is `:ok`. Allowed in guards.
+    """
+    defguard is_ok(term) when term == :ok
+
+    @impl true
+    def init(state), do: {:ok, state}
+
+    # Define other functions here.
+  end
+  ```
+
+- Use the `__MODULE__` pseudo variable when a module refers to itself. This avoids having to update any self-references when the module name changes.
+
+  ```elixir
+  defmodule SomeProject.SomeModule do
+    defstruct [:name]
+
+    def name(%__MODULE__{name: name}), do: name
+  end
+  ```
+
+### Typespecs
+
+- Place `@typedoc` and `@type` definitions together, and separate each pair with a blank line.
+
+  ```elixir
+  defmodule SomeModule do
+    @moduledoc false
+
+    @typedoc "The name"
+    @type name() :: atom()
+
+    @typedoc "The result"
+    @type result() :: {:ok, any()} | {:error, any()}
+
+    ...
+  end
+  ```
+
+- Name the main type for a module `t()`, for example: the type specification for a struct.
+
+  ```elixir
+  defstruct name: nil, params: []
+
+  @typedoc "The type for ..."
+  @type t() :: %__MODULE__{
+          name: String.t() | nil,
+          params: Keyword.t()
+        }
+  ```
+
+- Place specifications right before the function definition, after the `@doc`, without separating them by a blank line.
+
+  ```elixir
+  @doc """
+  Some function description.
+  """
+  @spec some_function(any()) :: result()
+  def some_function(some_data) do
+    {:ok, some_data}
+  end
+  ```
+
+### Structs
+
+- Use a list of atoms for struct fields that default to `nil`, followed by the other keywords.
+
+  ```elixir
+  # not preferred
+  defstruct name: nil, params: nil, active: true
+
+  # preferred
+  defstruct [:name, :params, active: true]
+  ```
+
+- Omit square brackets when the argument of a `defstruct` is a keyword list.
+
+  ```elixir
+  # not preferred
+  defstruct [params: [], active: true]
+
+  # preferred
+  defstruct params: [], active: true
+
+  # required - brackets are not optional, with at least one atom in the list
+  defstruct [:name, params: [], active: true]
+  ```
+
+- If a struct definition spans multiple lines, put each element on its own line, keeping the elements aligned.
+
+  ```elixir
+  defstruct foo: "test",
+            bar: true,
+            baz: false,
+            qux: false,
+            quux: 1
+  ```
+
+  If a multiline struct requires brackets, format it as a multiline list:
+
+  ```elixir
+  defstruct [
+    :name,
+    params: [],
+    active: true
+  ]
+  ```
+
+### Exceptions
+
+- Make exception names end with a trailing `Error`.
+
+  ```elixir
+  # not preferred
+  defmodule BadHTTPCode do
+    defexception [:message]
+  end
+
+  defmodule BadHTTPCodeException do
+    defexception [:message]
+  end
+
+  # preferred
+  defmodule BadHTTPCodeError do
+    defexception [:message]
+  end
+  ```
+
+- Use lowercase error messages when raising exceptions, with no trailing punctuation.
+
+  ```elixir
+  # not preferred
+  raise ArgumentError, "This is not valid."
+
+  # preferred
+  raise ArgumentError, "this is not valid"
+  ```
+
+### Collections
+
+- Always use the special syntax for keyword lists.
+
+  ```elixir
+  # not preferred
+  some_value = [{:a, "baz"}, {:b, "qux"}]
+
+  # preferred
+  some_value = [a: "baz", b: "qux"]
+  ```
+
+- Use the shorthand key-value syntax for maps when all of the keys are atoms.
+
+  ```elixir
+  # not preferred
+  %{:a => 1, :b => 2, :c => 0}
+
+  # preferred
+  %{a: 1, b: 2, c: 3}
+  ```
+
+- Use the verbose key-value syntax for maps if any key is not an atom.
+
+  ```elixir
+  # not preferred
+  %{"c" => 0, a: 1, b: 2}
+
+  # preferred
+  %{:a => 1, :b => 2, "c" => 0}
+  ```
+
+### Testing
+
+- When writing ExUnit assertions, put the expression being tested to the left of the operator, and the expected result to the right, unless the assertion is a pattern match.
+
+  ```elixir
+  # not preferred
+  assert true == actual_function(1)
+
+  # preferred
+  assert actual_function(1) == true
+
+  # required - the assertion is a pattern match, and the `expected` variable is used later
+  assert {:ok, expected} = actual_function(3)
+  assert expected.atom == :atom
+  assert expected.int == 123
+
+  # preferred - if the right side is known, even if it is a tuple
+  assert actual_function(11) == {:ok, %{atom: :atom, int: 123}}
+
+  # preferred - if the right side is known (using a variable)
+  expected = %{atom: :atom, int: 123}
+  assert actual_function(11) == {:ok, expected}
+  ```
+
+## Extra guidelines
+
+- Use a blank line for the return or final statement (unless it is a single line).
+
+  **Avoid**:
+
+      def some_function(arg) do
+        Logger.info("Arg: #{inspect(some_data)}")
+        :ok
+      end
+
+  **Prefer**:
+
+      def some_function(some_data) do
+        Logger.info("Arg: #{inspect(some_data)}")
+
+        :ok
+      end
+
+- Use multi-line when a function returns with a pipe.
+
+  **Avoid**:
+
+      def some_function(some_data) do
+        some_data |> other_function() |> List.first()
+      end
+
+  **Prefer**:
+
+      def some_function(some_data) do
+        some_data
+        |> other_function()
+        |> List.first()
+      end
+
+- Use `with` when only one case has to be handled, either the success or the error.
+
+  **Avoid**: `case` forwarding the same result
+
+      case some_call() do
+        :ok ->
+          :ok
+
+        {:error, reason} = error ->
+          Logger.error("Error: #{inspect(reason)}")
+
+          error
+      end
+
+  **Prefer**: `with` handling only the needed case
+
+      with {:error, reason} = error <- some_call() do
+        Logger.error("Error: #{inspect(reason)}")
+
+        error
+      end
+
+<!-- nebulex:elixir-style-end -->
+<!-- nebulex:elixir-start -->
+## nebulex:elixir usage
+# Elixir Core Usage Rules
+
+## Pattern Matching
+
+- Use pattern matching over conditional logic when possible
+- Prefer to match on function heads instead of using `if`/`else` or `case` in function bodies
+- `%{}` matches ANY map, not just empty maps. Use `map_size(map) == 0` guard to check for truly empty maps
+
+## Error Handling
+
+- Use `{:ok, result}` and `{:error, reason}` tuples for operations that can fail
+- Avoid raising exceptions for control flow
+- Use `with` for chaining operations that return `{:ok, _}` or `{:error, _}`
+- Bang functions (`!`) that explicitly raise exceptions on failure are acceptable (e.g., `File.read!/1`, `String.to_integer!/1`)
+- Avoid rescuing exceptions unless for a very specific case (e.g., cleaning up resources, logging critical errors)
+
+## Common Mistakes to Avoid
+
+- Elixir has no `return` statement, nor early returns. The last expression in a block is always returned.
+- Don't use `Enum` functions on large collections when `Stream` is more appropriate
+- Avoid nested `case` statements - refactor to a single `case`, `with` or separate functions
+- Don't use `String.to_atom/1` on user input (memory leak risk)
+- Lists and enumerables cannot be indexed with brackets. Use pattern matching or `Enum` functions
+- Prefer `Enum` functions like `Enum.reduce` over recursion
+- When recursion is necessary, prefer to use pattern matching in function heads for base case detection
+- Using the process dictionary is typically a sign of unidiomatic code
+- Only use macros if explicitly requested
+- There are many useful standard library functions, prefer to use them where possible
+
+## Function Design
+
+- Use guard clauses: `when is_binary(name) and byte_size(name) > 0`
+- Prefer multiple function clauses over complex conditional logic
+- Name functions descriptively: `calculate_total_price/2` not `calc/2`
+- Predicate function names should not start with `is` and should end in a question mark.
+- Names like `is_thing` should be reserved for guards
+
+## Data Structures
+
+- Use structs over maps when the shape is known: `defstruct [:name, :age]`
+- Prefer keyword lists for options: `[timeout: 5000, retries: 3]`
+- Use maps for dynamic key-value data
+- Prefer to prepend to lists `[new | list]` not `list ++ [new]`
+
+## Mix Tasks
+
+- Use `mix help` to list available mix tasks
+- Use `mix help task_name` to get docs for an individual task
+- Read the docs and options fully before using tasks
+
+## Testing
+
+- Run tests in a specific file with `mix test test/my_test.exs` and a specific test with the line number `mix test path/to/test.exs:123`
+- Limit the number of failed tests with `mix test --max-failures n`
+- Use `@tag` to tag specific tests, and `mix test --only tag` to run only those tests
+- Use `assert_raise` for testing expected exceptions: `assert_raise ArgumentError, fn -> invalid_function() end`
+- Use `mix help test` for full documentation on running tests
+
+## Debugging
+
+- Use `dbg/1` to print values while debugging. This will display the formatted value and other relevant information in the console.
+
+<!--
+The following rules are sourced from [Phoenix Framework](https://github.com/phoenixframework/phoenix),
+with modifications and additions.
+
+Copyright (c) 2014 Chris McCord, licensed under the MIT License.
+-->
+## Elixir guidelines
+
+- Elixir lists **do not support index based access via the access syntax**
+
+  **Never do this (invalid)**:
+
+      i = 0
+      mylist = ["blue", "green"]
+      mylist[i]
+
+  Instead, **always** use `Enum.at`, pattern matching, or `List` for index based list access, i.e.:
+
+      i = 0
+      mylist = ["blue", "green"]
+      Enum.at(mylist, i)
+
+- Elixir variables are immutable, but can be rebound, so for block expressions like `if`, `case`, `cond`, etc
+  you *must* bind the result of the expression to a variable if you want to use it and you CANNOT rebind the result inside the expression, i.e.:
+
+      # INVALID: we are rebinding inside the `if` and the result never gets assigned
+      if connected?(socket) do
+        socket = assign(socket, :val, val)
+      end
+
+      # VALID: we rebind the result of the `if` to a new variable
+      socket =
+        if connected?(socket) do
+          assign(socket, :val, val)
+        end
+
+- **Never** nest multiple modules in the same file as it can cause cyclic dependencies and compilation errors
+- **Never** use map access syntax (`changeset[:field]`) on structs as they do not implement the Access behaviour by default. For regular structs, you **must** access the fields directly, such as `my_struct.field` or use higher level APIs that are available on the struct if they exist, `Ecto.Changeset.get_field/2` for changesets
+- Elixir's standard library has everything necessary for date and time manipulation. Familiarize yourself with the common `Time`, `Date`, `DateTime`, and `Calendar` interfaces by accessing their documentation as necessary. **Never** install additional dependencies unless asked or for date/time parsing (which you can use the `date_time_parser` package)
+- Don't use `String.to_atom/1` on user input (memory leak risk)
+- Predicate function names should not start with `is_` and should end in a question mark. Names like `is_thing` should be reserved for guards
+- Elixir's built-in OTP primitives, such as `DynamicSupervisor` and `Registry`, require names in the child spec, such as `{DynamicSupervisor, name: MyApp.MyDynamicSup}`, then you can use `DynamicSupervisor.start_child(MyApp.MyDynamicSup, child_spec)`
+- Use `Task.async_stream(collection, callback, options)` for concurrent enumeration with back-pressure. The majority of times you will want to pass `timeout: :infinity` as option
+
+## Mix guidelines
+
+- Read the docs and options before using tasks (by using `mix help task_name`)
+- To debug test failures, run tests in a specific file with `mix test test/my_test.exs` or run all previously failed tests with `mix test --failed`
+- `mix deps.clean --all` is **almost never needed**. **Avoid** using it unless you have good reason
+
+## Extra Elixir guidelines
+
+- The `in` operator in guards requires a compile-time known value on the right side (literal list or range)
+
+  **Never do this (invalid)**: using a variable which is unknown at compile time
+
+      def t(x, y) when x in y, do: {x, y}
+
+  This will raise `ArgumentError: invalid right argument for operator "in", it expects a compile-time proper list or compile-time range on the right side when used in guard expressions`
+
+  **Valid**: use a known value for the list or range
+
+      def t(x, y) when x in [1, 2, 3], do: {x, y}
+      def t(x, y) when x in 1..10, do: {x, y}
+
+- In tests, avoid using `assert` with pattern matching when the expected value is fully known. Use direct equality comparison instead for clearer test failures
+
+  **Avoid**:
+
+      assert {:ok, ^value} = testing()
+      assert {:error, :not_found} = fetch()
+
+  **Prefer**:
+
+      assert testing() == {:ok, value}
+      assert fetch() == {:error, :not_found}
+
+  **Exception**: Pattern matching is acceptable when you only want to assert part of a complex structure
+
+      # OK: asserting only specific fields of a large struct/map
+      assert {:ok, %{id: ^id}} = get_order()
+
+- In tests, avoid duplicating test data across multiple tests. Use constants, fixture files, or private fixture functions instead
+
+  **Avoid**: Duplicating test data
+
+      test "validates user email" do
+        assert valid_email?("user@example.com")
+      end
+
+      test "creates user" do
+        assert create_user("user@example.com")
+      end
+
+  **Prefer**: Use module attributes for constants or fixture functions
+
+      @valid_email "user@example.com"
+
+      test "validates user email" do
+        assert valid_email?(@valid_email)
+      end
+
+      test "creates user" do
+        assert create_user(@valid_email)
+      end
+
+  For complex data structures, create fixture functions:
+
+      defp user_fixture(attrs \\ %{}) do
+        %User{
+          name: "John Doe",
+          email: "john@example.com",
+          age: 30
+        }
+        |> Map.merge(attrs)
+      end
+
+<!-- nebulex:elixir-end -->
+<!-- usage_rules-start -->
+## usage_rules usage
+_A config-driven dev tool for Elixir projects to manage AGENTS.md files and agent skills from dependencies_
+
+## Using Usage Rules
+
+Many packages have usage rules, which you should *thoroughly* consult before taking any
+action. These usage rules contain guidelines and rules *directly from the package authors*.
+They are your best source of knowledge for making decisions.
+
+## Modules & functions in the current app and dependencies
+
+When looking for docs for modules & functions that are dependencies of the current project,
+or for Elixir itself, use `mix usage_rules.docs`
+
+```
+# Search a whole module
+mix usage_rules.docs Enum
+
+# Search a specific function
+mix usage_rules.docs Enum.zip
+
+# Search a specific function & arity
+mix usage_rules.docs Enum.zip/1
+```
+
+
+## Searching Documentation
+
+You should also consult the documentation of any tools you are using, early and often. The best
+way to accomplish this is to use the `usage_rules.search_docs` mix task. Once you have
+found what you are looking for, use the links in the search results to get more detail. For example:
+
+```
+# Search docs for all packages in the current application, including Elixir
+mix usage_rules.search_docs Enum.zip
+
+# Search docs for specific packages
+mix usage_rules.search_docs Req.get -p req
+
+# Search docs for multi-word queries
+mix usage_rules.search_docs "making requests" -p req
+
+# Search only in titles (useful for finding specific functions/modules)
+mix usage_rules.search_docs "Enum.zip" --query-by title
+```
+
+
+<!-- usage_rules-end -->
+<!-- usage_rules:otp-start -->
+## usage_rules:otp usage
+# OTP Usage Rules
+
+## GenServer Best Practices
+- Keep state simple and serializable
+- Handle all expected messages explicitly
+- Use `handle_continue/2` for post-init work
+- Implement proper cleanup in `terminate/2` when necessary
+
+## Process Communication
+- Use `GenServer.call/3` for synchronous requests expecting replies
+- Use `GenServer.cast/2` for fire-and-forget messages.
+- When in doubt, use `call` over `cast`, to ensure back-pressure
+- Set appropriate timeouts for `call/3` operations
+
+## Fault Tolerance
+- Set up processes such that they can handle crashing and being restarted by supervisors
+- Use `:max_restarts` and `:max_seconds` to prevent restart loops
+
+## Task and Async
+- Use `Task.Supervisor` for better fault tolerance
+- Handle task failures with `Task.yield/2` or `Task.shutdown/2`
+- Set appropriate task timeouts
+- Use `Task.async_stream/3` for concurrent enumeration with back-pressure
+
+<!-- usage_rules:otp-end -->
 <!-- usage-rules-end -->

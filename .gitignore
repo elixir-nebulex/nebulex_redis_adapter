@@ -20,3 +20,5 @@ erl_crash.dump
 /priv
 /nebulex
 CLAUDE.md
+/.claude
+/.cursor
