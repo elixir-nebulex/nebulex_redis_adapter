@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v3.0.0](https://github.com/elixir-nebulex/nebulex_redis_adapter/tree/v3.0.0) (2026-02-21)
+> [Full Changelog](https://github.com/elixir-nebulex/nebulex_redis_adapter/compare/v3.0.0-rc.2...v3.0.0)
+
+### Enhancements
+
+- Improved documentation clarity across README and module docs.
+- Updated serializer decode option documentation with explicit compatibility and
+  safety guidance.
+- Applied minor maintenance updates and internal improvements.
+
 ## [v3.0.0-rc.2](https://github.com/elixir-nebulex/nebulex_redis_adapter/tree/v3.0.0-rc.2) (2025-12-07)
 > [Full Changelog](https://github.com/elixir-nebulex/nebulex_redis_adapter/compare/v3.0.0-rc.1...v3.0.0-rc.2)
 

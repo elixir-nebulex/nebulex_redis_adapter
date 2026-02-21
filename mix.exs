@@ -2,7 +2,7 @@ defmodule Nebulex.Adapters.Redis.MixProject do
   use Mix.Project
 
   @source_url "https://github.com/elixir-nebulex/nebulex_redis_adapter"
-  @version "3.0.0-dev"
+  @version "3.0.0"
 
   def project do
     [
@@ -86,7 +86,7 @@ defmodule Nebulex.Adapters.Redis.MixProject do
     if path = System.get_env("NEBULEX_PATH") do
       {:nebulex, path: path, override: true}
     else
-      {:nebulex, github: "elixir-nebulex/nebulex", branch: "main", override: true}
+      {:nebulex, "~> 3.0"}
     end
   end
 
