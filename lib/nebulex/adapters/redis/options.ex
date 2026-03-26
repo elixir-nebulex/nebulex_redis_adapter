@@ -36,6 +36,14 @@ defmodule Nebulex.Adapters.Redis.Options do
 
       """
     ],
+    backend: [
+      type: :atom,
+      required: false,
+      default: :redis,
+      doc: """
+      Backend identifier used in telemetry metadata.
+      """
+    ],
     pool_size: [
       type: :pos_integer,
       required: false,

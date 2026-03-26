@@ -8,6 +8,7 @@ defmodule Nebulex.Adapters.Redis.StandaloneTest do
 
   import Nebulex.CacheCase, only: [safe_stop: 1, t_sleep: 1]
 
+  alias Nebulex.Adapter
   alias Nebulex.Adapters.Redis.TestCache.Standalone, as: Cache
 
   setup do
@@ -102,6 +103,12 @@ defmodule Nebulex.Adapters.Redis.StandaloneTest do
 
       assert cache.get_or_store!("ttl", fn -> "new value" end) == "new value"
       assert cache.get!("ttl") == "new value"
+    end
+  end
+
+  describe "adapter metadata" do
+    test "defaults backend to :redis", %{cache: cache} do
+      assert Adapter.lookup_meta(cache).backend == :redis
     end
   end
 end

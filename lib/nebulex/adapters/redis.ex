@@ -528,6 +528,9 @@ defmodule Nebulex.Adapters.Redis do
     # Adapter mode
     mode = Keyword.fetch!(opts, :mode)
 
+    # Adapter backend identifier
+    backend = Keyword.fetch!(opts, :backend)
+
     # Local registry
     registry = camelize_and_concat([name, Registry])
 
@@ -544,6 +547,7 @@ defmodule Nebulex.Adapters.Redis do
         telemetry: telemetry,
         cache_pid: self(),
         name: opts[:name] || cache,
+        backend: backend,
         mode: mode,
         pool_size: pool_size,
         registry: registry,
