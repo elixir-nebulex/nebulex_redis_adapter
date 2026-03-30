@@ -1,5 +1,5 @@
-defmodule Nebulex.Adapters.Redis.RedixConnTest do
-  import Nebulex.CacheCase
+defmodule Knock.Nebulex.Adapters.Redis.RedixConnTest do
+  import Knock.Nebulex.CacheCase
 
   deftests "Redix" do
     test "command/3 ok", %{cache: cache, name: name} do

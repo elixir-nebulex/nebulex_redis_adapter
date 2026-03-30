@@ -1,5 +1,5 @@
-defmodule Nebulex.Adapters.Redis.InfoTest do
-  import Nebulex.CacheCase
+defmodule Knock.Nebulex.Adapters.Redis.InfoTest do
+  import Knock.Nebulex.CacheCase
 
   deftests "info" do
     @redis_info_sections ~w(

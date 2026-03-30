@@ -2,7 +2,7 @@
 Application.start(:telemetry)
 
 # Nebulex dependency path
-nbx_dep_path = Mix.Project.deps_paths()[:nebulex]
+nbx_dep_path = Mix.Project.deps_paths()[:knock_nebulex]
 
 Code.require_file("#{nbx_dep_path}/test/support/cache_case.exs", __DIR__)
 
@@ -26,13 +26,13 @@ end
 # Mocks
 [
   Redix,
-  Nebulex.Adapters.Redis.Cluster,
-  Nebulex.Adapters.Redis.Cluster.Keyslot,
-  Nebulex.Adapters.Redis.Pool
+  Knock.Nebulex.Adapters.Redis.Cluster,
+  Knock.Nebulex.Adapters.Redis.Cluster.Keyslot,
+  Knock.Nebulex.Adapters.Redis.Pool
 ]
 |> Enum.each(&Mimic.copy/1)
 
 # Disable testing expired event on observable tests
-:ok = Application.put_env(:nebulex, :observable_test_expired, false)
+:ok = Application.put_env(:knock_nebulex, :observable_test_expired, false)
 
 ExUnit.start()

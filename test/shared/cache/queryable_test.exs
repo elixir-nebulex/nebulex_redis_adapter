@@ -1,9 +1,9 @@
-defmodule Nebulex.Adapters.Redis.QueryableTest do
-  import Nebulex.CacheCase
+defmodule Knock.Nebulex.Adapters.Redis.QueryableTest do
+  import Knock.Nebulex.CacheCase
 
   deftests "queryable" do
     use Mimic
-    import Nebulex.CacheCase
+    import Knock.Nebulex.CacheCase
 
     test "get_all!/1 returns all cached keys", %{cache: cache} do
       set1 = cache_put(cache, 1..50)
@@ -38,7 +38,7 @@ defmodule Nebulex.Adapters.Redis.QueryableTest do
 
       assert expected -- result == []
 
-      assert_raise Nebulex.QueryError, fn ->
+      assert_raise Knock.Nebulex.QueryError, fn ->
         cache.stream!(query: :invalid_query)
         |> Enum.to_list()
       end
@@ -125,11 +125,11 @@ defmodule Nebulex.Adapters.Redis.QueryableTest do
       Redix
       |> stub(:command, fn _, _, _ -> {:error, %Redix.ConnectionError{reason: :closed}} end)
 
-      assert_raise Nebulex.Error, ~r"\*\* \(Redix.ConnectionError\)", fn ->
+      assert_raise Knock.Nebulex.Error, ~r"\*\* \(Redix.ConnectionError\)", fn ->
         cache.stream!() |> Enum.to_list()
       end
 
-      assert_raise Nebulex.Error, ~r"\*\* \(Redix.ConnectionError\)", fn ->
+      assert_raise Knock.Nebulex.Error, ~r"\*\* \(Redix.ConnectionError\)", fn ->
         cache.stream!(in: [1, 2, 3]) |> Enum.to_list()
       end
     end

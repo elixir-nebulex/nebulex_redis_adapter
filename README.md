@@ -1,4 +1,4 @@
-# Nebulex.Adapters.Redis 🧱⚡
+# Knock.Nebulex.Adapters.Redis 🧱⚡
 > Nebulex adapter for Redis (including [Redis Cluster][redis_cluster] support).
 
 ![CI](https://github.com/elixir-nebulex/nebulex_redis_adapter/workflows/CI/badge.svg)
@@ -10,6 +10,8 @@
 [redix]: https://github.com/whatyouhide/redix
 
 ## 📖 About
+
+This is a temporary fork that allows us to run v2 and v3 of Nebulex at the same time.
 
 This adapter uses [Redix][redix], a Redis driver for Elixir, to provide a
 production-ready caching solution with support for multiple deployment modes.
@@ -36,7 +38,7 @@ following sections.
 > not the latest released version on Hex. Please reference the
 > [official documentation][docs-lsr] for the latest stable release.
 
-[docs-lsr]: https://hexdocs.pm/nebulex_redis_adapter/Nebulex.Adapters.Redis.html
+[docs-lsr]: https://hexdocs.pm/nebulex_redis_adapter/Knock.Nebulex.Adapters.Redis.html
 
 ---
 
@@ -73,9 +75,9 @@ After installing, you can define your cache to use the Redis adapter as follows:
 
 ```elixir
 defmodule MyApp.RedisCache do
-  use Nebulex.Cache,
+  use Knock.Nebulex.Cache,
     otp_app: :my_app,
-    adapter: Nebulex.Adapters.Redis
+    adapter: Knock.Nebulex.Adapters.Redis
 end
 ```
 
@@ -94,18 +96,18 @@ config :my_app, MyApp.RedisCache,
 Since this adapter is implemented using `Redix`, it inherits the same
 options, including regular Redis options and connection options. For
 more information about the options, please check out the
-`Nebulex.Adapters.Redis` module and also [Redix][redix].
+`Knock.Nebulex.Adapters.Redis` module and also [Redix][redix].
 
 See the [online documentation][docs] and [Redis cache example][redis_example]
 for more information.
 
-[docs]: https://hexdocs.pm/nebulex_redis_adapter/Nebulex.Adapters.Redis.html
+[docs]: https://hexdocs.pm/nebulex_redis_adapter/Knock.Nebulex.Adapters.Redis.html
 [redis_example]: https://github.com/elixir-nebulex/nebulex_examples/tree/master/redis_cache
 
 ## 🌐 Distributed Caching
 
 There are different ways to support distributed caching when using
-**Nebulex.Adapters.Redis**.
+**Knock.Nebulex.Adapters.Redis**.
 
 ### 🏗️ Redis Cluster
 
@@ -118,9 +120,9 @@ and routes commands to the correct shards.
 ```elixir
 # 1. Define your cache
 defmodule MyApp.RedisClusterCache do
-  use Nebulex.Cache,
+  use Knock.Nebulex.Cache,
     otp_app: :my_app,
-    adapter: Nebulex.Adapters.Redis
+    adapter: Knock.Nebulex.Adapters.Redis
 end
 
 # 2. Configure in config/config.exs
@@ -146,7 +148,7 @@ The adapter automatically:
 See the [Redis Cluster documentation][redis_cluster_docs] for advanced
 configuration options.
 
-[redis_cluster_docs]: https://hexdocs.pm/nebulex_redis_adapter/Nebulex.Adapters.Redis.html#module-redis-cluster
+[redis_cluster_docs]: https://hexdocs.pm/nebulex_redis_adapter/Knock.Nebulex.Adapters.Redis.html#module-redis-cluster
 
 ### 🔗 Client-side Cluster
 
@@ -158,9 +160,9 @@ Cluster, use client-side sharding with consistent hashing.
 ```elixir
 # 1. Define your cache
 defmodule MyApp.ClusteredCache do
-  use Nebulex.Cache,
+  use Knock.Nebulex.Cache,
     otp_app: :my_app,
-    adapter: Nebulex.Adapters.Redis
+    adapter: Knock.Nebulex.Adapters.Redis
 end
 
 # 2. Configure in config/config.exs
@@ -181,13 +183,13 @@ maintains its own connection pool.
 See the [Client-side Cluster documentation][client_cluster_docs] for more
 configuration options.
 
-[client_cluster_docs]: https://hexdocs.pm/nebulex_redis_adapter/Nebulex.Adapters.Redis.html#module-client-side-cluster
+[client_cluster_docs]: https://hexdocs.pm/nebulex_redis_adapter/Knock.Nebulex.Adapters.Redis.html#module-client-side-cluster
 
 ### 🌉 Using a Redis Proxy
 
 Another option is to use a proxy, such as [Envoy proxy][envoy] or
 [Twemproxy][twemproxy], on top of Redis. In this case, the proxy handles the
-distribution work, and from the adapter's side (**Nebulex.Adapters.Redis**),
+distribution work, and from the adapter's side (**Knock.Nebulex.Adapters.Redis**),
 it would only require configuration. Instead of connecting the adapter to the
 Redis nodes, you connect it to the proxy nodes. This means in the config,
 you set up the pool with the host and port pointing to the proxy.
@@ -225,12 +227,12 @@ iex> Redix.pipeline!(conn, [
 See the [Using as Redis Client documentation][redis_client_docs] for encoding/
 decoding helpers and advanced usage.
 
-[redis_client_docs]: https://hexdocs.pm/nebulex_redis_adapter/Nebulex.Adapters.Redis.html#module-using-the-adapter-as-a-redis-client
+[redis_client_docs]: https://hexdocs.pm/nebulex_redis_adapter/Knock.Nebulex.Adapters.Redis.html#module-using-the-adapter-as-a-redis-client
 
 ## 🧪 Testing
 
-To run the **Nebulex.Adapters.Redis** tests, you will need to have Redis running
-locally. **Nebulex.Adapters.Redis** requires a complex setup for running tests
+To run the **Knock.Nebulex.Adapters.Redis** tests, you will need to have Redis running
+locally. **Knock.Nebulex.Adapters.Redis** requires a complex setup for running tests
 (since it needs several instances running for standalone, cluster, and Redis
 Cluster modes). For this reason, there is a [docker-compose.yml](docker-compose.yml)
 file in the repo so you can use [Docker][docker] and [docker-compose][docker_compose]
@@ -244,7 +246,7 @@ $ docker-compose up
 [docker]: https://www.docker.com/
 [docker_compose]: https://docs.docker.com/compose/
 
-Since `Nebulex.Adapters.Redis` uses the support modules and shared tests
+Since `Knock.Nebulex.Adapters.Redis` uses the support modules and shared tests
 from `Nebulex` and by default its test folder is not included in the Hex
 dependency, the following steps are required for running the tests.
 
@@ -255,7 +257,7 @@ to `nebulex`:
 export NEBULEX_PATH=nebulex
 ```
 
-Second, make sure you fetch the `:nebulex` dependency directly from GitHub
+Second, make sure you fetch the `:knock_nebulex` dependency directly from GitHub
 by running:
 
 ```bash
@@ -315,4 +317,4 @@ all checks run successfully.
 
 Copyright (c) 2018, Carlos Bolaños.
 
-Nebulex.Adapters.Redis source code is licensed under the [MIT License](LICENSE.md).
+Knock.Nebulex.Adapters.Redis source code is licensed under the [MIT License](LICENSE.md).

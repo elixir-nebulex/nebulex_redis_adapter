@@ -1,4 +1,4 @@
-defmodule Nebulex.Adapters.Redis.MixProject do
+defmodule Knock.Nebulex.Adapters.Redis.MixProject do
   use Mix.Project
 
   @source_url "https://github.com/elixir-nebulex/nebulex_redis_adapter"
@@ -14,7 +14,7 @@ defmodule Nebulex.Adapters.Redis.MixProject do
       deps: deps(),
 
       # Docs
-      name: "Nebulex.Adapters.Redis",
+      name: "Knock.Nebulex.Adapters.Redis",
       docs: docs(),
 
       # Testing
@@ -84,9 +84,9 @@ defmodule Nebulex.Adapters.Redis.MixProject do
 
   defp nebulex_dep do
     if path = System.get_env("NEBULEX_PATH") do
-      {:nebulex, path: path, override: true}
+      {:knock_nebulex, path: path, override: true}
     else
-      {:nebulex, "~> 3.0"}
+      {:knock_nebulex, github: "knocklabs/nebulex", ref: "a21edeb18a3f6296838166f81e89fe7690dc9a33"}
     end
   end
 
@@ -121,7 +121,7 @@ defmodule Nebulex.Adapters.Redis.MixProject do
 
   defp docs do
     [
-      main: "Nebulex.Adapters.Redis",
+      main: "Knock.Nebulex.Adapters.Redis",
       source_ref: "v#{@version}",
       canonical: "https://hexdocs.pm/nebulex_redis_adapter",
       source_url: @source_url
@@ -130,7 +130,7 @@ defmodule Nebulex.Adapters.Redis.MixProject do
 
   defp dialyzer do
     [
-      plt_add_apps: [:nebulex],
+      plt_add_apps: [:knock_nebulex],
       plt_file: {:no_warn, "priv/plts/" <> plt_file_name()},
       flags: [
         :unmatched_returns,
@@ -153,7 +153,7 @@ defmodule Nebulex.Adapters.Redis.MixProject do
 
       # rules to include directly in AGENTS.md
       usage_rules: [
-        {:nebulex,
+        {:knock_nebulex,
          [
            sub_rules: [
              "workflow",
@@ -168,7 +168,7 @@ defmodule Nebulex.Adapters.Redis.MixProject do
       # Agent skills configuration
       skills: [
         # Auto-build a "use-<pkg>" skill per dependency
-        deps: [:nebulex]
+        deps: [:knock_nebulex]
       ]
     ]
   end

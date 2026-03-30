@@ -3,9 +3,9 @@
 _ = Application.start(:telemetry)
 
 defmodule BenchCache do
-  use Nebulex.Cache,
+  use Knock.Nebulex.Cache,
     otp_app: :nebulex,
-    adapter: Nebulex.Adapters.Redis
+    adapter: Knock.Nebulex.Adapters.Redis
 end
 
 # start caches
