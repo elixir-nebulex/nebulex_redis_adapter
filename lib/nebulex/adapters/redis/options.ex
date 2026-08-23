@@ -43,7 +43,7 @@ defmodule Nebulex.Adapters.Redis.Options do
       The number of connections per Redis instance or shard.
 
         * In `:standalone` mode: Total number of connections to the single
-          Redis instance.
+          Redis instance. Ignored when `:conn_ref` is set, since no pool is started.
         * In `:redis_cluster` mode: Number of connections per shard
           (master node).
         * In `:client_side_cluster` mode: Number of connections per node
@@ -137,6 +137,26 @@ defmodule Nebulex.Adapters.Redis.Options do
       `:redis_cluster` or `:client_side_cluster` configuration.
 
       See `Redix.start_link/1` for the complete list of available options.
+      """
+    ],
+    conn_ref: [
+      type: {:custom, __MODULE__, :validate_connection_ref, []},
+      required: false,
+      doc: """
+      A reference to an externally managed Redis connection for `:standalone`
+      mode. When configured, the adapter does not start a Redix connection
+      pool and passes this reference directly to Redix commands.
+
+      This option takes precedence over `:conn_opts` and accepts a PID,
+      registered name, or `{:via, module, term}`. The external connection
+      is owned and supervised by the caller.
+
+      A raw PID is suitable only for short-lived setups (such as tests): if
+      the connection restarts, the PID becomes stale. Prefer a registered name
+      or `{:via, module, term}` for supervised connections.
+
+      This option cannot be used with `:redis_cluster` or
+      `:client_side_cluster` modes.
       """
     ],
     redis_cluster: [
@@ -402,7 +422,22 @@ defmodule Nebulex.Adapters.Redis.Options do
       |> Keyword.drop(@nbx_start_opts)
       |> NimbleOptions.validate!(@start_opts_schema)
 
+    start_opts = validate_conn_ref_mode!(start_opts)
     Keyword.merge(opts, start_opts)
+  end
+
+  defp validate_conn_ref_mode!(opts) do
+    case {Keyword.fetch(opts, :conn_ref), Keyword.fetch!(opts, :mode)} do
+      {{:ok, conn_ref}, mode} when mode != :standalone ->
+        raise NimbleOptions.ValidationError,
+          key: :conn_ref,
+          value: conn_ref,
+          message:
+            "invalid value for :conn_ref option: only supported in :standalone mode, got: #{inspect(mode)}"
+
+      _ ->
+        opts
+    end
   end
 
   @spec validate_stream_opts!(keyword()) :: keyword()
@@ -429,6 +464,25 @@ defmodule Nebulex.Adapters.Redis.Options do
     else
       {:error, "expected #{inspect(module)} to implement the behaviour #{inspect(behaviour)}"}
     end
+  end
+
+  @doc false
+  @spec validate_connection_ref(any()) :: {:ok, Redix.connection()} | {:error, String.t()}
+  def validate_connection_ref(conn) when is_pid(conn), do: {:ok, conn}
+
+  def validate_connection_ref(conn) when is_atom(conn) and conn not in [nil, true, false],
+    do: {:ok, conn}
+
+  def validate_connection_ref({:global, _name} = conn), do: {:ok, conn}
+  def validate_connection_ref({:via, module, _name} = conn) when is_atom(module), do: {:ok, conn}
+
+  def validate_connection_ref({name, node} = conn) when is_atom(name) and is_atom(node),
+    do: {:ok, conn}
+
+  def validate_connection_ref(conn) do
+    {:error,
+     "expected a Redix connection reference (PID, name, or GenServer server), got: " <>
+       inspect(conn)}
   end
 
   @doc false
