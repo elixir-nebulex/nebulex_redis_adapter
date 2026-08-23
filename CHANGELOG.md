@@ -13,6 +13,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - Updated serializer decode option documentation with explicit compatibility and
   safety guidance.
 - Applied minor maintenance updates and internal improvements.
+- Added support for externally managed standalone Redis connections via `:conn`.
 
 ## [v3.0.0-rc.2](https://github.com/elixir-nebulex/nebulex_redis_adapter/tree/v3.0.0-rc.2) (2025-12-07)
 > [Full Changelog](https://github.com/elixir-nebulex/nebulex_redis_adapter/compare/v3.0.0-rc.1...v3.0.0-rc.2)

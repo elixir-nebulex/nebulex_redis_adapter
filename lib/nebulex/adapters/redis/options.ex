@@ -48,6 +48,8 @@ defmodule Nebulex.Adapters.Redis.Options do
           (master node).
         * In `:client_side_cluster` mode: Number of connections per node
           (can be overridden per node in the node configuration).
+        * When `:conn` is configured in `:standalone` mode, no pool is
+          started and this option is ignored.
 
       Defaults to `System.schedulers_online()`, which matches the number of
       available CPU cores and provides good concurrency.
@@ -137,6 +139,22 @@ defmodule Nebulex.Adapters.Redis.Options do
       `:redis_cluster` or `:client_side_cluster` configuration.
 
       See `Redix.start_link/1` for the complete list of available options.
+      """
+    ],
+    conn: [
+      type: {:custom, __MODULE__, :validate_connection, []},
+      required: false,
+      doc: """
+      An externally managed Redis connection reference for `:standalone`
+      mode. When configured, the adapter does not start a Redix connection
+      pool and passes this value directly to Redix commands.
+
+      This option takes precedence over `:conn_opts` and accepts connection
+      references such as a PID, registered name, or `{:via, module, term}`.
+      The external connection is owned and supervised by the caller.
+
+      This option cannot be used with `:redis_cluster` or
+      `:client_side_cluster` modes.
       """
     ],
     redis_cluster: [
@@ -402,7 +420,21 @@ defmodule Nebulex.Adapters.Redis.Options do
       |> Keyword.drop(@nbx_start_opts)
       |> NimbleOptions.validate!(@start_opts_schema)
 
+    start_opts = validate_conn_mode!(start_opts)
     Keyword.merge(opts, start_opts)
+  end
+
+  defp validate_conn_mode!(opts) do
+    case {Keyword.fetch(opts, :conn), Keyword.fetch!(opts, :mode)} do
+      {{:ok, conn}, mode} when mode != :standalone ->
+        raise NimbleOptions.ValidationError,
+          key: :conn,
+          value: conn,
+          message: "only supported in :standalone mode, got: #{inspect(mode)}"
+
+      _ ->
+        opts
+    end
   end
 
   @spec validate_stream_opts!(keyword()) :: keyword()
@@ -429,6 +461,19 @@ defmodule Nebulex.Adapters.Redis.Options do
     else
       {:error, "expected #{inspect(module)} to implement the behaviour #{inspect(behaviour)}"}
     end
+  end
+
+  @doc false
+  @spec validate_connection(any()) :: {:ok, Redix.connection()} | {:error, String.t()}
+  def validate_connection(conn) when is_pid(conn) or is_atom(conn), do: {:ok, conn}
+  def validate_connection({:global, _name} = conn), do: {:ok, conn}
+  def validate_connection({:via, module, _name} = conn) when is_atom(module), do: {:ok, conn}
+  def validate_connection({name, node} = conn) when is_atom(name) and is_atom(node), do: {:ok, conn}
+
+  def validate_connection(conn) do
+    {:error,
+     "expected a Redix connection reference (PID, name, or GenServer server), got: " <>
+       inspect(conn)}
   end
 
   @doc false

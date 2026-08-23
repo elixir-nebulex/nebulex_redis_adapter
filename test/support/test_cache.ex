@@ -23,6 +23,13 @@ defmodule Nebulex.Adapters.Redis.TestCache do
     use Nebulex.Adapters.Redis.TestCache.Common
   end
 
+  defmodule External do
+    @moduledoc false
+    use Nebulex.Cache,
+      otp_app: :nebulex_redis_adapter,
+      adapter: Nebulex.Adapters.Redis
+  end
+
   defmodule RedisCluster do
     @moduledoc false
     use Nebulex.Cache,
