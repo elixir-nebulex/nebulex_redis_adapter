@@ -8,8 +8,15 @@ defmodule Nebulex.Adapters.Redis.Connection do
 
   ## API
 
-  @spec init(adapter_meta(), keyword()) :: {Supervisor.child_spec(), adapter_meta()}
-  def init(%{name: name, registry: registry, pool_size: pool_size} = adapter_meta, opts) do
+  @spec init(adapter_meta(), keyword()) :: {[Supervisor.child_spec()], adapter_meta()}
+  def init(adapter_meta, opts) do
+    case Keyword.get(opts, :conn) do
+      nil -> init_pool(adapter_meta, opts)
+      conn -> {[], Map.put(adapter_meta, :conn, conn)}
+    end
+  end
+
+  defp init_pool(%{name: name, registry: registry, pool_size: pool_size} = adapter_meta, opts) do
     conn_specs =
       Pool.register_names(registry, name, pool_size, fn conn_name ->
         opts
@@ -23,7 +30,7 @@ defmodule Nebulex.Adapters.Redis.Connection do
       start: {Supervisor, :start_link, [conn_specs, [strategy: :one_for_one]]}
     }
 
-    {connections_supervisor_spec, adapter_meta}
+    {[connections_supervisor_spec], adapter_meta}
   end
 
   @spec child_spec(keyword()) :: Supervisor.child_spec()

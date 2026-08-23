@@ -15,7 +15,7 @@ defmodule Nebulex.Adapters.Redis.Cluster do
 
   ## API
 
-  @spec init(adapter_meta(), keyword()) :: {Supervisor.child_spec(), adapter_meta()}
+  @spec init(adapter_meta(), keyword()) :: {[Supervisor.child_spec()], adapter_meta()}
   def init(%{name: name} = adapter_meta, opts) do
     # Ensure :redis_cluster is provided
     if is_nil(Keyword.get(opts, :redis_cluster)) do
@@ -48,7 +48,7 @@ defmodule Nebulex.Adapters.Redis.Cluster do
       type: :supervisor
     }
 
-    {child_spec, adapter_meta}
+    {[child_spec], adapter_meta}
   end
 
   @spec command(

@@ -36,7 +36,13 @@ defmodule Nebulex.Adapters.Redis do
         conn_opts: [
           host: "127.0.0.1",
           port: 6379
-        ]
+      ]
+
+  ### External connection management
+
+  Set `:conn` to a PID, registered name, or `{:via, module, term}` tuple for
+  a connection managed outside the adapter. The adapter uses the connection
+  directly and does not start, supervise, or stop it.
 
   ## Redis Cluster
 
@@ -551,8 +557,8 @@ defmodule Nebulex.Adapters.Redis do
       }
       |> Map.merge(serializer_meta)
 
-    # Init the connections child spec according to the adapter mode
-    {conn_child_spec, adapter_meta} = do_init(adapter_meta, opts)
+    # Initialize child specs according to the adapter mode.
+    {child_specs, adapter_meta} = do_init(adapter_meta, opts)
 
     # Supervisor name
     sup_name = camelize_and_concat([name, Supervisor])
@@ -560,7 +566,7 @@ defmodule Nebulex.Adapters.Redis do
     # Prepare child spec
     child_spec =
       Supervisor.child_spec(
-        {Nebulex.Adapters.Redis.Supervisor, {sup_name, conn_child_spec, adapter_meta}},
+        {Nebulex.Adapters.Redis.Supervisor, {sup_name, child_specs, adapter_meta}},
         id: {__MODULE__, sup_name}
       )
 

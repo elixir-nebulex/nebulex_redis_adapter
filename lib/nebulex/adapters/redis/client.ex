@@ -88,8 +88,12 @@ defmodule Nebulex.Adapters.Redis.Client do
   end
 
   @spec fetch_conn(Nebulex.Adapter.adapter_meta(), any(), keyword()) ::
-          {:ok, pid()} | {:error, Nebulex.Error.t()}
+          {:ok, Redix.connection()} | {:error, Nebulex.Error.t()}
   def fetch_conn(adapter_meta, key, opts)
+
+  def fetch_conn(%{mode: :standalone, conn: conn}, _key, _opts) do
+    {:ok, conn}
+  end
 
   def fetch_conn(
         %{mode: :standalone, name: name, registry: registry, pool_size: pool_size},
