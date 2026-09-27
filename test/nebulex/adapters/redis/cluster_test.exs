@@ -5,6 +5,11 @@ defmodule Nebulex.Adapters.Redis.ClusterTest do
   # Inherited tests
   use Nebulex.Adapters.Redis.CacheTest
 
+  # Core's `CompositeKVTest` calls `t_sleep/1` without importing it; it relies
+  # on the import leaked by `KVExpirationTest`, which is excluded below.
+  # Remove once Nebulex core imports `t_sleep/1` in that shared test.
+  import Nebulex.CacheCase, only: [t_sleep: 1]
+
   # Inherited tests from Nebulex
   use Nebulex.CacheTestCase,
     except: [

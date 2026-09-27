@@ -433,6 +433,9 @@ defmodule Nebulex.Adapters.Redis do
   @behaviour Nebulex.Adapter.KV
   @behaviour Nebulex.Adapter.Queryable
 
+  # Inherit default composite KV implementation
+  use Nebulex.Adapter.CompositeKV
+
   # Inherit default observable implementation
   use Nebulex.Adapter.Observable
 
