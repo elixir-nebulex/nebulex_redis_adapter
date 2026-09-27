@@ -1,6 +1,8 @@
 defmodule Nebulex.Adapters.Redis.StandaloneTest do
   use ExUnit.Case, async: true
 
+  @moduletag capture_log: true
+
   # Inherited tests
   use Nebulex.Adapters.Redis.CacheTest
   use Nebulex.CacheTestCase, except: [Nebulex.Cache.TransactionTest]
@@ -9,8 +11,6 @@ defmodule Nebulex.Adapters.Redis.StandaloneTest do
 
   alias Nebulex.Adapters.Redis.TestCache.External
   alias Nebulex.Adapters.Redis.TestCache.Standalone, as: Cache
-
-  @moduletag capture_log: true
 
   setup do
     {:ok, pid} = Cache.start_link()

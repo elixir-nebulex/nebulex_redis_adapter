@@ -8,17 +8,27 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Enhancements
 
-- Added support for externally managed standalone Redis connections via `:conn_ref`.
+- [Nebulex.Adapters.Redis] Added support for externally managed standalone
+  Redis connections via `:conn_ref`.
+- [Nebulex.Adapters.Redis] Implemented the `Nebulex.Adapter.CompositeKV`
+  behaviour, now required by Nebulex core, using the default implementation
+  for `get_and_update`, `update`, `fetch_or_store`, and `get_or_store`.
 
 ## [v3.0.0](https://github.com/elixir-nebulex/nebulex_redis_adapter/tree/v3.0.0) (2026-02-21)
 > [Full Changelog](https://github.com/elixir-nebulex/nebulex_redis_adapter/compare/v3.0.0-rc.2...v3.0.0)
 
 ### Enhancements
 
-- Improved documentation clarity across README and module docs.
-- Updated serializer decode option documentation with explicit compatibility and
-  safety guidance.
-- Applied minor maintenance updates and internal improvements.
+- [Nebulex.Adapters.Redis.Serializer] The default serializer now forwards the
+  `:decode_key` and `:decode_value` serializer options to
+  `:erlang.binary_to_term/2`, so `[:safe]` can be set when decoding data from
+  untrusted sources. Both options default to `[]` for backward compatibility.
+- [Nebulex.Adapters.Redis.Options] Updated serializer decode option
+  documentation with explicit compatibility and safety guidance.
+- [Nebulex.Adapters.Redis] Improved documentation clarity across README and
+  module docs (serializers section, query examples, and Telemetry events).
+- [Nebulex.Adapters.Redis] Applied minor maintenance updates and internal
+  improvements; internal modules are now hidden from the generated docs.
 
 ## [v3.0.0-rc.2](https://github.com/elixir-nebulex/nebulex_redis_adapter/tree/v3.0.0-rc.2) (2025-12-07)
 > [Full Changelog](https://github.com/elixir-nebulex/nebulex_redis_adapter/compare/v3.0.0-rc.1...v3.0.0-rc.2)

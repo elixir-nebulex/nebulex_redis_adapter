@@ -1,6 +1,8 @@
 defmodule Nebulex.Adapters.Redis.ClientSideClusterTest do
   use ExUnit.Case, async: true
 
+  @moduletag capture_log: true
+
   # Inherited tests
   use Nebulex.Adapters.Redis.CacheTest
 
@@ -10,8 +12,6 @@ defmodule Nebulex.Adapters.Redis.ClientSideClusterTest do
   import Nebulex.CacheCase
 
   alias Nebulex.Adapters.Redis.TestCache.ClientSideCluster, as: Cache
-
-  @moduletag capture_log: true
 
   setup do
     {:ok, pid} = Cache.start_link()

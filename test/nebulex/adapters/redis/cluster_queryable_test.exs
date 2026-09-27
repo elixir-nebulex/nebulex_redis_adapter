@@ -1,6 +1,10 @@
 defmodule Nebulex.Adapters.Redis.ClusterQueryableTest do
   use ExUnit.Case, async: false
 
+  @moduletag :redis_cluster
+  @moduletag :cluster_queryable_test
+  @moduletag capture_log: true
+
   # Inherited tests from Nebulex
   use Nebulex.CacheTestCase,
     only: [
@@ -11,10 +15,6 @@ defmodule Nebulex.Adapters.Redis.ClusterQueryableTest do
   import Nebulex.CacheCase
 
   alias Nebulex.Adapters.Redis.TestCache.RedisCluster, as: Cache
-
-  @moduletag :redis_cluster
-  @moduletag :cluster_queryable_test
-  @moduletag capture_log: true
 
   setup do
     {:ok, pid} = Cache.start_link()

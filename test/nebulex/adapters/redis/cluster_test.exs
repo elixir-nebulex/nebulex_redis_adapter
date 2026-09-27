@@ -1,9 +1,18 @@
 defmodule Nebulex.Adapters.Redis.ClusterTest do
   use ExUnit.Case, async: false
+
+  @moduletag :redis_cluster
+  @moduletag capture_log: true
+
   use Mimic
 
   # Inherited tests
   use Nebulex.Adapters.Redis.CacheTest
+
+  # Core's `CompositeKVTest` calls `t_sleep/1` without importing it; it relies
+  # on the import leaked by `KVExpirationTest`, which is excluded below.
+  # Remove once Nebulex core imports `t_sleep/1` in that shared test.
+  import Nebulex.CacheCase, only: [t_sleep: 1]
 
   # Inherited tests from Nebulex
   use Nebulex.CacheTestCase,
@@ -24,9 +33,6 @@ defmodule Nebulex.Adapters.Redis.ClusterTest do
   alias Nebulex.Adapters.Redis.TestCache.RedisCluster, as: Cache
   alias Nebulex.Adapters.Redis.TestCache.RedisClusterConnError
   alias Nebulex.Telemetry
-
-  @moduletag :redis_cluster
-  @moduletag capture_log: true
 
   setup do
     {:ok, pid} = Cache.start_link()
