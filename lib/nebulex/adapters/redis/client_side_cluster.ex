@@ -15,7 +15,7 @@ defmodule Nebulex.Adapters.Redis.ClientSideCluster do
 
   ## API
 
-  @spec init(adapter_meta(), keyword()) :: {Supervisor.child_spec(), adapter_meta()}
+  @spec init(adapter_meta(), keyword()) :: {[Supervisor.child_spec()], adapter_meta()}
   def init(%{name: name, pool_size: pool_size} = adapter_meta, opts) do
     cluster_opts = Keyword.get(opts, :client_side_cluster)
 
@@ -49,7 +49,7 @@ defmodule Nebulex.Adapters.Redis.ClientSideCluster do
       type: :supervisor
     }
 
-    {child_spec, adapter_meta}
+    {[child_spec], adapter_meta}
   end
 
   @spec command(

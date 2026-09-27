@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Enhancements
+
+- Added support for externally managed standalone Redis connections via `:conn_ref`.
+
 ## [v3.0.0](https://github.com/elixir-nebulex/nebulex_redis_adapter/tree/v3.0.0) (2026-02-21)
 > [Full Changelog](https://github.com/elixir-nebulex/nebulex_redis_adapter/compare/v3.0.0-rc.2...v3.0.0)
 

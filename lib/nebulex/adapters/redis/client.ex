@@ -3,11 +3,13 @@ defmodule Nebulex.Adapters.Redis.Client do
   @moduledoc false
 
   import Nebulex.Adapters.Redis.Helpers
+  import Nebulex.Utils, only: [wrap_error: 2]
 
   alias Nebulex.Adapters.Redis.{
     ClientSideCluster,
     Cluster,
     Cluster.ConfigManager,
+    ErrorFormatter,
     Pool
   }
 
@@ -88,8 +90,23 @@ defmodule Nebulex.Adapters.Redis.Client do
   end
 
   @spec fetch_conn(Nebulex.Adapter.adapter_meta(), any(), keyword()) ::
-          {:ok, pid()} | {:error, Nebulex.Error.t()}
+          {:ok, Redix.connection()} | {:error, Nebulex.Error.t()}
   def fetch_conn(adapter_meta, key, opts)
+
+  def fetch_conn(%{mode: :standalone, conn_ref: conn_ref}, _key, _opts) when is_pid(conn_ref) do
+    if Process.alive?(conn_ref) do
+      {:ok, conn_ref}
+    else
+      wrap_error Nebulex.Error, reason: :redis_connection_error, module: ErrorFormatter
+    end
+  end
+
+  def fetch_conn(%{mode: :standalone, conn_ref: conn_ref}, _key, _opts) do
+    case GenServer.whereis(conn_ref) do
+      nil -> wrap_error Nebulex.Error, reason: :redis_connection_error, module: ErrorFormatter
+      _pid -> {:ok, conn_ref}
+    end
+  end
 
   def fetch_conn(
         %{mode: :standalone, name: name, registry: registry, pool_size: pool_size},

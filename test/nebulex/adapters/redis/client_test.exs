@@ -51,5 +51,20 @@ defmodule Nebulex.Adapters.Redis.ClientTest do
                   reason: :redis_connection_error
                 }}
     end
+
+    test "error: external connection name is not registered" do
+      expected =
+        {:error,
+         %Nebulex.Error{
+           __exception__: true,
+           metadata: [],
+           module: Nebulex.Adapters.Redis.ErrorFormatter,
+           reason: :redis_connection_error
+         }}
+
+      for conn <- [:missing_connection, {:via, Registry, {__MODULE__.Registry, :missing}}] do
+        assert Client.fetch_conn(%{mode: :standalone, conn_ref: conn}, :key, []) == expected
+      end
+    end
   end
 end
