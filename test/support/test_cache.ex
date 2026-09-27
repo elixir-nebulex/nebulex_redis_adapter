@@ -16,6 +16,7 @@ defmodule Nebulex.Adapters.Redis.TestCache do
 
   defmodule Standalone do
     @moduledoc false
+
     use Nebulex.Cache,
       otp_app: :nebulex_redis_adapter,
       adapter: Nebulex.Adapters.Redis
@@ -25,6 +26,7 @@ defmodule Nebulex.Adapters.Redis.TestCache do
 
   defmodule External do
     @moduledoc false
+
     use Nebulex.Cache,
       otp_app: :nebulex_redis_adapter,
       adapter: Nebulex.Adapters.Redis
@@ -32,6 +34,7 @@ defmodule Nebulex.Adapters.Redis.TestCache do
 
   defmodule RedisCluster do
     @moduledoc false
+
     use Nebulex.Cache,
       otp_app: :nebulex_redis_adapter,
       adapter: Nebulex.Adapters.Redis
@@ -41,6 +44,7 @@ defmodule Nebulex.Adapters.Redis.TestCache do
 
   defmodule ClientSideCluster do
     @moduledoc false
+
     use Nebulex.Cache,
       otp_app: :nebulex_redis_adapter,
       adapter: Nebulex.Adapters.Redis
@@ -50,6 +54,7 @@ defmodule Nebulex.Adapters.Redis.TestCache do
 
   defmodule RedisClusterConnError do
     @moduledoc false
+
     use Nebulex.Cache,
       otp_app: :nebulex_redis_adapter,
       adapter: Nebulex.Adapters.Redis
@@ -57,6 +62,7 @@ defmodule Nebulex.Adapters.Redis.TestCache do
 
   defmodule RedisClusterWithKeyslot do
     @moduledoc false
+
     use Nebulex.Cache,
       otp_app: :nebulex_redis_adapter,
       adapter: Nebulex.Adapters.Redis

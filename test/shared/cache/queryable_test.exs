@@ -3,6 +3,7 @@ defmodule Nebulex.Adapters.Redis.QueryableTest do
 
   deftests "queryable" do
     use Mimic
+
     import Nebulex.CacheCase
 
     test "get_all!/1 returns all cached keys", %{cache: cache} do

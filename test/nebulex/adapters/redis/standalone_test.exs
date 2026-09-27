@@ -1,6 +1,5 @@
 defmodule Nebulex.Adapters.Redis.StandaloneTest do
   use ExUnit.Case, async: true
-  @moduletag capture_log: true
 
   # Inherited tests
   use Nebulex.Adapters.Redis.CacheTest
@@ -10,6 +9,8 @@ defmodule Nebulex.Adapters.Redis.StandaloneTest do
 
   alias Nebulex.Adapters.Redis.TestCache.External
   alias Nebulex.Adapters.Redis.TestCache.Standalone, as: Cache
+
+  @moduletag capture_log: true
 
   setup do
     {:ok, pid} = Cache.start_link()
@@ -31,8 +32,9 @@ defmodule Nebulex.Adapters.Redis.StandaloneTest do
     end
 
     test "fetch_or_store returns error if the function returns an error", %{cache: cache} do
-      assert {:error, %Nebulex.Error{reason: "error"}} =
-               cache.fetch_or_store("lazy", fn -> {:error, "error"} end)
+      assert cache.fetch_or_store("lazy", fn -> {:error, "error"} end) ==
+               {:error,
+                %Nebulex.Error{reason: "error", metadata: [command: :fetch_or_store, key: "lazy"]}}
 
       refute cache.get!("lazy")
     end
@@ -119,6 +121,7 @@ defmodule Nebulex.Adapters.Redis.StandaloneTest do
       assert External.get!(key) == value
 
       :ok = Supervisor.stop(cache_pid)
+
       assert Process.alive?(conn) == true
     end
 
@@ -128,10 +131,16 @@ defmodule Nebulex.Adapters.Redis.StandaloneTest do
 
       :ok = stop_supervised(Redix)
 
-      assert {:error, %Nebulex.Error{reason: :redis_connection_error}} = External.fetch_conn()
+      expected =
+        {:error,
+         %Nebulex.Error{
+           metadata: [],
+           module: Nebulex.Adapters.Redis.ErrorFormatter,
+           reason: :redis_connection_error
+         }}
 
-      assert {:error, %Nebulex.Error{reason: :redis_connection_error}} =
-               External.get("external")
+      assert External.fetch_conn() == expected
+      assert External.get("external") == expected
     end
 
     test "runs queryable operations through an externally managed connection" do
@@ -160,6 +169,7 @@ defmodule Nebulex.Adapters.Redis.StandaloneTest do
       assert External.get!(key) == value
 
       :ok = Supervisor.stop(cache_pid)
+
       assert Process.alive?(conn) == true
     end
 

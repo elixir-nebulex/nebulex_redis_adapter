@@ -1,9 +1,5 @@
 defmodule Nebulex.Adapters.Redis.ClusterTest do
   use ExUnit.Case, async: false
-
-  @moduletag :redis_cluster
-  @moduletag capture_log: true
-
   use Mimic
 
   # Inherited tests
@@ -29,6 +25,9 @@ defmodule Nebulex.Adapters.Redis.ClusterTest do
   alias Nebulex.Adapters.Redis.TestCache.RedisClusterConnError
   alias Nebulex.Telemetry
 
+  @moduletag :redis_cluster
+  @moduletag capture_log: true
+
   setup do
     {:ok, pid} = Cache.start_link()
     _ = Cache.delete_all!()
@@ -42,6 +41,7 @@ defmodule Nebulex.Adapters.Redis.ClusterTest do
     test "error: missing :redis_cluster option" do
       defmodule RedisClusterWithInvalidOpts do
         @moduledoc false
+
         use Nebulex.Cache,
           otp_app: :nebulex_redis_adapter,
           adapter: Nebulex.Adapters.Redis
@@ -85,14 +85,14 @@ defmodule Nebulex.Adapters.Redis.ClusterTest do
         # 1st failed attempt
         assert_receive {^stop, %{duration: _}, %{status: :error}}, 5000
 
-        # Command fails because the cluster is in error status
+        # Command fails because the cluster is in error status.
         assert_raise Nebulex.Error,
                      ~r/could not run the command because Redis Cluster is in error status/,
                      fn ->
                        RedisClusterConnError.get!("foo")
                      end
 
-        # 2dn failed attempt
+        # 2nd failed attempt
         assert_receive {^stop, %{duration: _}, %{status: :error}}, 5000
       end)
     end
@@ -250,12 +250,12 @@ defmodule Nebulex.Adapters.Redis.ClusterTest do
       Keyslot
       |> stub(:hash_slot, &:erlang.phash2/2)
 
-      # put is executed with a Redis command
+      # Put is executed with a Redis command.
       assert_raise Nebulex.Error, ~r/\*\* \(Redix.Error\) MOVED/, fn ->
         cache.put!("1234567890", "hello")
       end
 
-      # take is executed with a Redis transaction pipeline
+      # Take is executed with a Redis transaction pipeline.
       assert_raise Nebulex.Error, ~r/\*\* \(Redix.Error\) MOVED/, fn ->
         cache.take!("1234567890")
       end
@@ -272,13 +272,13 @@ defmodule Nebulex.Adapters.Redis.ClusterTest do
         |> expect(:hash_slot, fn _, _ -> 0 end)
         |> expect(:hash_slot, 2, fn _, _ -> hash_slot end)
 
-        # Triggers MOVED error the first time, then the command succeeds
+        # Triggers MOVED error the first time, then the command succeeds.
         :ok = cache.put!("MOVED", "MOVED")
 
-        # Cluster is re-configured
+        # Cluster is re-configured.
         assert_receive {^stop, %{duration: _}, %{status: :ok}}, 5000
 
-        # Command was executed successfully
+        # Command was executed successfully.
         assert cache.get!("MOVED") == "MOVED"
       end)
     end

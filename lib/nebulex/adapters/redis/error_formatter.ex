@@ -31,7 +31,7 @@ defmodule Nebulex.Adapters.Redis.ErrorFormatter do
   end
 
   defp msg({:redis_cluster_setup_error, reason}, metadata) do
-    {"could not setup Redis Cluster, failed with reason: #{inspect(reason)}.", metadata}
+    {"could not setup Redis Cluster, failed with reason: #{inspect(reason)}", metadata}
   end
 
   defp format_metadata({msg, metadata}) do

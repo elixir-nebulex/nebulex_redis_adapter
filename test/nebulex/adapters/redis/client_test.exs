@@ -6,6 +6,7 @@ defmodule Nebulex.Adapters.Redis.ClientTest do
 
   alias Nebulex.Adapters.Redis.Client
 
+  # Adapter meta for a standalone cache with a single connection
   @adapter_meta %{mode: :standalone, name: :test, registry: :test, pool_size: 1}
 
   describe "command/3" do
@@ -16,7 +17,7 @@ defmodule Nebulex.Adapters.Redis.ClientTest do
       Redix
       |> expect(:command, fn _, _, _ -> {:error, %Redix.Error{}} end)
 
-      assert {:error, %Redix.Error{}} = Client.command(@adapter_meta, [["PING"]])
+      assert Client.command(@adapter_meta, [["PING"]]) == {:error, %Redix.Error{}}
     end
   end
 
@@ -28,7 +29,7 @@ defmodule Nebulex.Adapters.Redis.ClientTest do
       Redix
       |> expect(:pipeline, fn _, _, _ -> {:ok, [%Redix.Error{}]} end)
 
-      assert {:error, %Redix.Error{}} = Client.transaction_pipeline(@adapter_meta, [["PING"]])
+      assert Client.transaction_pipeline(@adapter_meta, [["PING"]]) == {:error, %Redix.Error{}}
     end
   end
 
@@ -45,7 +46,6 @@ defmodule Nebulex.Adapters.Redis.ClientTest do
       assert Client.fetch_conn(%{@adapter_meta | registry: __MODULE__.Registry}, :key, 1) ==
                {:error,
                 %Nebulex.Error{
-                  __exception__: true,
                   metadata: [],
                   module: Nebulex.Adapters.Redis.ErrorFormatter,
                   reason: :redis_connection_error
@@ -56,7 +56,6 @@ defmodule Nebulex.Adapters.Redis.ClientTest do
       expected =
         {:error,
          %Nebulex.Error{
-           __exception__: true,
            metadata: [],
            module: Nebulex.Adapters.Redis.ErrorFormatter,
            reason: :redis_connection_error

@@ -43,7 +43,8 @@ defmodule Nebulex.Adapters.Redis.Options do
       The number of connections per Redis instance or shard.
 
         * In `:standalone` mode: Total number of connections to the single
-          Redis instance. Ignored when `:conn_ref` is set, since no pool is started.
+          Redis instance. Ignored when `:conn_ref` is set, since no pool is
+          started.
         * In `:redis_cluster` mode: Number of connections per shard
           (master node).
         * In `:client_side_cluster` mode: Number of connections per node
@@ -421,8 +422,8 @@ defmodule Nebulex.Adapters.Redis.Options do
       opts
       |> Keyword.drop(@nbx_start_opts)
       |> NimbleOptions.validate!(@start_opts_schema)
+      |> validate_conn_ref_mode!()
 
-    start_opts = validate_conn_ref_mode!(start_opts)
     Keyword.merge(opts, start_opts)
   end
 
@@ -468,16 +469,25 @@ defmodule Nebulex.Adapters.Redis.Options do
 
   @doc false
   @spec validate_connection_ref(any()) :: {:ok, Redix.connection()} | {:error, String.t()}
-  def validate_connection_ref(conn) when is_pid(conn), do: {:ok, conn}
+  def validate_connection_ref(conn) when is_pid(conn) do
+    {:ok, conn}
+  end
 
-  def validate_connection_ref(conn) when is_atom(conn) and conn not in [nil, true, false],
-    do: {:ok, conn}
+  def validate_connection_ref(conn) when is_atom(conn) and conn not in [nil, true, false] do
+    {:ok, conn}
+  end
 
-  def validate_connection_ref({:global, _name} = conn), do: {:ok, conn}
-  def validate_connection_ref({:via, module, _name} = conn) when is_atom(module), do: {:ok, conn}
+  def validate_connection_ref({:global, _name} = conn) do
+    {:ok, conn}
+  end
 
-  def validate_connection_ref({name, node} = conn) when is_atom(name) and is_atom(node),
-    do: {:ok, conn}
+  def validate_connection_ref({:via, module, _name} = conn) when is_atom(module) do
+    {:ok, conn}
+  end
+
+  def validate_connection_ref({name, node} = conn) when is_atom(name) and is_atom(node) do
+    {:ok, conn}
+  end
 
   def validate_connection_ref(conn) do
     {:error,

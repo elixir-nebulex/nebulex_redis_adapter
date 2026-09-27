@@ -10,7 +10,10 @@ defmodule Nebulex.Adapters.Redis.ClientSideCluster do
   @typedoc "Proxy type to the adapter meta"
   @type adapter_meta() :: Nebulex.Adapter.adapter_meta()
 
+  @typedoc "A node entry: the node name and its pool size"
   @type node_entry() :: {node_name :: atom(), pool_size :: pos_integer()}
+
+  @typedoc "The nodes configuration"
   @type nodes_config() :: [node_entry()]
 
   ## API

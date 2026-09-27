@@ -429,9 +429,9 @@ defmodule Nebulex.Adapters.Redis do
 
   # Provide Cache Implementation
   @behaviour Nebulex.Adapter
+  @behaviour Nebulex.Adapter.Info
   @behaviour Nebulex.Adapter.KV
   @behaviour Nebulex.Adapter.Queryable
-  @behaviour Nebulex.Adapter.Info
 
   # Inherit default observable implementation
   use Nebulex.Adapter.Observable
@@ -858,7 +858,7 @@ defmodule Nebulex.Adapters.Redis do
 
     with {:ok, ^incr} when default > 0 <-
            Client.command(adapter_meta, ["INCRBY", redis_k, incr], opts) do
-      # The key didn't exist, increment the default value
+      # The key didn't exist, increment the default value.
       Client.command(adapter_meta, ["INCRBY", redis_k, default], opts)
     end
   end

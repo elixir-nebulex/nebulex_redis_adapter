@@ -2,13 +2,14 @@ defmodule Nebulex.Adapters.Redis.InfoTest do
   import Nebulex.CacheCase
 
   deftests "info" do
+    # Redis INFO sections returned by the adapter
     @redis_info_sections ~w(
       server clients memory persistence stats replication cpu commandstats
       latencystats cluster modules keyspace errorstats
     )a
 
     test "returns all", %{cache: cache} do
-      # equivalent to cache.info(:all)
+      # Equivalent to cache.info(:all)
       assert {:ok, info} = cache.info()
 
       for section <- @redis_info_sections do

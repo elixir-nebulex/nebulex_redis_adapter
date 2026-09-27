@@ -27,7 +27,7 @@ defmodule Nebulex.Adapters.Redis.Helpers do
   def random_timeout(times) do
     _ = if rem(times, 10) == 0, do: :rand.seed(:exsplus)
 
-    # First time 1/4 seconds, then doubling each time up to 8 seconds max
+    # First time 1/4 seconds, then doubling each time up to 8 seconds max.
     tmax =
       if times > 5 do
         8000

@@ -119,7 +119,7 @@ defmodule Nebulex.Adapters.Redis.Client do
   def fetch_conn(%{mode: :redis_cluster, name: name} = meta, key, opts) do
     with {:error, %Nebulex.Error{reason: :redis_connection_error}} <-
            Cluster.fetch_conn(meta, key, opts) do
-      # Perhars the cluster should be re-configured
+      # Perhaps the cluster should be re-configured.
       :ok = ConfigManager.setup_shards(name)
 
       # Retry once more
@@ -160,7 +160,7 @@ defmodule Nebulex.Adapters.Redis.Client do
   end
 
   # A tweaked version of `Redix.transaction_pipeline/3` for handling
-  # Redis Cluster errors
+  # Redis Cluster errors.
   defp redix_transaction_pipeline(conn, [_ | _] = commands, options, :redis_cluster)
        when is_list(options) do
     with {:ok, responses} <- Redix.pipeline(conn, [["MULTI"]] ++ commands ++ [["EXEC"]], options) do

@@ -1,5 +1,6 @@
 defmodule Nebulex.Adapters.Redis.ClientSideCluster.PoolSupervisor do
   @moduledoc false
+
   use Supervisor
 
   alias Nebulex.Adapters.Redis.Pool

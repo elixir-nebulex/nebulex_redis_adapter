@@ -7,11 +7,11 @@ defmodule Nebulex.Adapters.Redis.Cluster do
   alias __MODULE__.Keyslot
   alias Nebulex.Adapters.Redis.{ErrorFormatter, Options, Pool}
 
-  @typedoc "Proxy type to the adapter meta"
-  @type adapter_meta() :: Nebulex.Adapter.adapter_meta()
-
   # Redis cluster hash slots size
   @redis_cluster_hash_slots 16_384
+
+  @typedoc "Proxy type to the adapter meta"
+  @type adapter_meta() :: Nebulex.Adapter.adapter_meta()
 
   ## API
 
@@ -150,7 +150,7 @@ defmodule Nebulex.Adapters.Redis.Cluster do
 
   @spec put_status(atom(), atom()) :: :ok
   def put_status(name, status) when is_atom(name) and is_atom(status) do
-    # An atom is a single word so this does not trigger a global GC
+    # An atom is a single word so this does not trigger a global GC.
     name
     |> status_key()
     |> :persistent_term.put(status)
@@ -158,7 +158,7 @@ defmodule Nebulex.Adapters.Redis.Cluster do
 
   @spec del_status_key(atom()) :: :ok
   def del_status_key(name) when is_atom(name) do
-    # An atom is a single word so this does not trigger a global GC
+    # An atom is a single word so this does not trigger a global GC.
     _ignore =
       name
       |> status_key()

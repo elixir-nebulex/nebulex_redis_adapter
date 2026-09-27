@@ -6,20 +6,22 @@ defmodule Nebulex.Adapters.Redis.Cluster.ConfigManager do
   import Nebulex.Adapters.Redis.Helpers
   import Nebulex.Utils
 
+  require Logger
+
   alias Nebulex.Adapters.Redis.{Cluster, ErrorFormatter}
   alias Nebulex.Adapters.Redis.Cluster.PoolSupervisor
   alias Nebulex.Telemetry
 
-  require Logger
-
   ## Internals
 
   # GenServer State
-  defstruct adapter_meta: nil,
-            opts: [],
-            running_shards: [],
-            dynamic_sup: nil,
-            setup_retries: 1
+  defstruct [
+    :adapter_meta,
+    :dynamic_sup,
+    opts: [],
+    running_shards: [],
+    setup_retries: 1
+  ]
 
   ## API
 
@@ -88,7 +90,7 @@ defmodule Nebulex.Adapters.Redis.Cluster.ConfigManager do
     :ok = stop_running_shards(meta.cluster_shards_tab, sup, lst)
   end
 
-  ## Private functions
+  ## Private Functions
 
   defp do_setup_shards(
          %__MODULE__{adapter_meta: %{name: name}, setup_retries: n} = state,
@@ -261,7 +263,7 @@ defmodule Nebulex.Adapters.Redis.Cluster.ConfigManager do
 
   defp parse_cluster_info(config, config_endpoint, opts) do
     # Whether the given master host should be overridden with the
-    # configuration endpoint or not
+    # configuration endpoint or not.
     override? =
       opts
       |> Keyword.fetch!(:redis_cluster)
