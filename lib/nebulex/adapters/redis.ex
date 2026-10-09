@@ -804,7 +804,7 @@ defmodule Nebulex.Adapters.Redis do
         wrap_error Nebulex.KeyError, key: key, reason: :not_found
 
       {:ok, ttl} ->
-        {:ok, ttl * 1000}
+        {:ok, ttl}
 
       {:error, _} = e ->
         e
