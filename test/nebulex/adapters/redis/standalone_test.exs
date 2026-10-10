@@ -106,6 +106,16 @@ defmodule Nebulex.Adapters.Redis.StandaloneTest do
       assert cache.get_or_store!("ttl", fn -> "new value" end) == "new value"
       assert cache.get!("ttl") == "new value"
     end
+
+    test "ttl! returns the remaining ttl in milliseconds", %{cache: cache} do
+      ttl = :timer.seconds(10)
+
+      assert cache.put!("ttl", "value", ttl: ttl) == :ok
+      assert cache.ttl!("ttl") in (ttl - :timer.seconds(1))..ttl
+
+      assert cache.expire!("ttl", :timer.seconds(5)) == true
+      assert cache.ttl!("ttl") in :timer.seconds(4)..:timer.seconds(5)
+    end
   end
 
   describe "external connection management" do
