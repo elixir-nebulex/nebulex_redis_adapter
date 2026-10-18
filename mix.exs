@@ -39,7 +39,7 @@ defmodule Nebulex.Adapters.Redis.MixProject do
         "coveralls.detail": :test,
         "coveralls.post": :test,
         "coveralls.html": :test,
-        "test.ci": :test
+        precommit: :test
       ]
     ]
   end
@@ -69,6 +69,7 @@ defmodule Nebulex.Adapters.Redis.MixProject do
       {:sobelow, "~> 0.16", only: [:dev, :test], runtime: false},
       {:mimic, "~> 2.4", only: :test},
       {:stream_data, "~> 1.4", only: [:dev, :test]},
+      {:mix_audit, "~> 2.1", only: [:dev, :test], runtime: false},
 
       # Benchmark Test
       {:benchee, "~> 1.5", only: [:dev, :test]},
@@ -96,14 +97,16 @@ defmodule Nebulex.Adapters.Redis.MixProject do
         "cmd rm -rf nebulex",
         "cmd git clone --depth 1 --branch main https://github.com/elixir-nebulex/nebulex"
       ],
-      "test.ci": [
+      precommit: [
         "deps.unlock --check-unused",
+        "deps.audit",
         "compile --warnings-as-errors",
         "format --check-formatted",
         "credo --strict",
+        "coveralls.html --exclude cluster_queryable_test",
         "sobelow --skip --exit Low",
-        "coveralls.html",
-        "dialyzer --format short"
+        "dialyzer --format short",
+        "docs --warnings-as-errors"
       ],
       "ur.sync": ["usage_rules.sync"]
     ]

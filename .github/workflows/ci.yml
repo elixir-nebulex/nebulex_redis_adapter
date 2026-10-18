@@ -43,7 +43,7 @@ jobs:
       REDIS_CLUSTER_IP: '0.0.0.0'
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Start Docker
         run: docker compose up --detach
@@ -55,7 +55,7 @@ jobs:
           elixir-version: '${{ matrix.elixir }}'
 
       - name: Cache deps
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         id: mix-cache
         with:
           path: deps
@@ -64,7 +64,7 @@ jobs:
             hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
 
       - name: Cache _build
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: _build
           key: >-
@@ -74,11 +74,13 @@ jobs:
       - name: Install Nebulex
         run: mix nbx.setup
 
-      - name: Install Dependencies
+      - name: Install Hex and Rebar
         run: |
           mix local.hex --force
           mix local.rebar --force
-          mix deps.get
+
+      - name: Install Dependencies
+        run: mix deps.get
         if: ${{ steps.mix-cache.outputs.cache-hit != 'true' }}
 
       - name: Compile deps
@@ -86,6 +88,10 @@ jobs:
 
       - name: Check unused dependencies
         run: mix deps.unlock --check-unused
+        if: ${{ matrix.lint }}
+
+      - name: Audit dependencies for security advisories
+        run: mix deps.audit
         if: ${{ matrix.lint }}
 
       - name: Compile lint
@@ -103,15 +109,11 @@ jobs:
         if: ${{ matrix.sobelow }}
 
       - name: Run tests
-        run: |
-          epmd -daemon
-          mix test --exclude cluster_queryable_test --exclude redis_cluster
+        run: mix test --exclude cluster_queryable_test --exclude redis_cluster
         if: ${{ !matrix.coverage }}
 
       - name: Run tests with coverage
-        run: |
-          epmd -daemon
-          mix coveralls.json --exclude cluster_queryable_test
+        run: mix coveralls.json --exclude cluster_queryable_test
         if: ${{ matrix.coverage }}
 
       - name: Upload coverage reports to Codecov
@@ -122,11 +124,15 @@ jobs:
         if: ${{ matrix.coverage }}
 
       - name: Restore PLT Cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         id: plt-cache
         with:
           path: priv/plts
-          key: ${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-plt-v1
+          key: >-
+            plt-${{ matrix.elixir }}-${{ matrix.otp }}-${{
+            hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+          restore-keys: |
+            plt-${{ matrix.elixir }}-${{ matrix.otp }}-
         if: ${{ matrix.dialyzer }}
 
       - name: Create PLTs
@@ -137,4 +143,8 @@ jobs:
 
       - name: Run dialyzer
         run: mix dialyzer --format github
-        if: ${{ matrix.dialyzer && steps.plt-cache.outputs.cache-hit != 'true' }}
+        if: ${{ matrix.dialyzer }}
+
+      - name: Check docs build without warnings
+        run: mix docs --warnings-as-errors
+        if: ${{ matrix.lint }}

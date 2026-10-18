@@ -244,43 +244,22 @@ $ docker-compose up
 [docker]: https://www.docker.com/
 [docker_compose]: https://docs.docker.com/compose/
 
-Since `Nebulex.Adapters.Redis` uses the support modules and shared tests
-from `Nebulex` and by default its test folder is not included in the Hex
-dependency, the following steps are required for running the tests.
-
-First, make sure you set the environment variable `NEBULEX_PATH`
-to `nebulex`:
-
-```bash
-export NEBULEX_PATH=nebulex
-```
-
-Second, make sure you fetch the `:nebulex` dependency directly from GitHub
-by running:
-
-```bash
-mix nbx.setup
-```
-
-Third, fetch the dependencies:
+The suite also uses support modules and shared tests from the Nebulex
+repository, which are not included in the Hex package. Fetch the
+dependencies, clone Nebulex with `mix nbx.setup`, and run the tests with
+`NEBULEX_PATH` pointing to that checkout:
 
 ```bash
 mix deps.get
-```
-
-Finally, you can run the tests:
-
-```bash
-mix test
+mix nbx.setup
+NEBULEX_PATH=nebulex mix test
 ```
 
 Running tests with coverage:
 
 ```bash
-mix coveralls.html
+NEBULEX_PATH=nebulex mix coveralls.html
 ```
-
-You will find the coverage report within `cover/excoveralls.html`.
 
 ## 📊 Benchmarks
 
@@ -297,19 +276,13 @@ mix run benchmarks/benchmark.exs
 
 ## 🤝 Contributing
 
-Contributions to Nebulex are very welcome and appreciated!
-
 Use the [issue tracker](https://github.com/elixir-nebulex/nebulex_redis_adapter/issues)
-for bug reports or feature requests. Open a
-[pull request](https://github.com/elixir-nebulex/nebulex_redis_adapter/pulls)
-when you are ready to contribute.
+for bug reports and feature requests. Contributions are welcome through
+[pull requests](https://github.com/elixir-nebulex/nebulex_redis_adapter/pulls).
 
-When submitting a pull request, you should not update the [CHANGELOG.md](CHANGELOG.md),
-and also make sure you test your changes thoroughly, including unit tests
-alongside new or changed code.
-
-Before submitting a PR, it is highly recommended to run `mix test.ci` and ensure
-all checks run successfully.
+Include tests for new or changed behavior, and leave
+[CHANGELOG.md](CHANGELOG.md) unchanged. Before submitting a pull request, run
+`NEBULEX_PATH=nebulex mix precommit` and fix any failures.
 
 ## 📄 Copyright and License
 
