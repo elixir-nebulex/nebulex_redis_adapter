@@ -56,26 +56,26 @@ defmodule Nebulex.Adapters.Redis.MixProject do
   defp deps do
     [
       nebulex_dep(),
-      {:redix, "~> 1.5"},
+      {:redix, "~> 1.9"},
       {:nimble_options, "~> 0.5 or ~> 1.0"},
       {:telemetry, "~> 0.4 or ~> 1.0"},
-      {:crc, "~> 0.10", optional: true},
+      {:crc, "~> 0.11", optional: true},
       {:ex_hash_ring, "~> 7.0", optional: true},
 
       # Test & Code Analysis
       {:excoveralls, "~> 0.18", only: :test},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
-      {:sobelow, "~> 0.14", only: [:dev, :test], runtime: false},
-      {:mimic, "~> 2.0", only: :test},
-      {:stream_data, "~> 1.2", only: [:dev, :test]},
+      {:sobelow, "~> 0.16", only: [:dev, :test], runtime: false},
+      {:mimic, "~> 2.4", only: :test},
+      {:stream_data, "~> 1.4", only: [:dev, :test]},
 
       # Benchmark Test
       {:benchee, "~> 1.5", only: [:dev, :test]},
       {:benchee_html, "~> 1.0", only: [:dev, :test]},
 
       # Usage Rules
-      {:usage_rules, "~> 1.0", only: [:dev]},
+      {:usage_rules, "~> 1.2", only: [:dev]},
 
       # Docs
       {:ex_doc, "~> 0.40", only: [:dev, :test], runtime: false}
@@ -86,7 +86,7 @@ defmodule Nebulex.Adapters.Redis.MixProject do
     if path = System.get_env("NEBULEX_PATH") do
       {:nebulex, path: path, override: true}
     else
-      {:nebulex, "~> 3.0"}
+      {:nebulex, "~> 3.1"}
     end
   end
 

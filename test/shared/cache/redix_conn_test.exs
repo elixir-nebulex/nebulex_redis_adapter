@@ -78,9 +78,7 @@ defmodule Nebulex.Adapters.Redis.RedixConnTest do
     test "pipeline!/3 returns an error", %{cache: cache, name: name} do
       assert {:ok, conn} = cache.fetch_conn(name: name, key: "counter")
 
-      assert_raise Redix.Error, fn ->
-        Redix.command!(conn, [["INCRBY", "counter", "invalid"]])
-      end
+      assert [%Redix.Error{}] = Redix.pipeline!(conn, [["INCRBY", "counter", "invalid"]])
     end
   end
 end
