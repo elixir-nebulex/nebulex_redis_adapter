@@ -47,7 +47,7 @@ Add `:nebulex_redis_adapter` to your list of dependencies in `mix.exs`:
 ```elixir
 defp deps do
   [
-    {:nebulex_redis_adapter, "~> 3.0"},
+    {:nebulex_redis_adapter, "~> 3.1"},
     {:telemetry, "~> 1.0"},   #=> For observability/telemetry support
     {:crc, "~> 0.10"},        #=> Needed when using `:redis_cluster` mode
     {:ex_hash_ring, "~> 7.0"} #=> Needed when using `:client_side_cluster` mode

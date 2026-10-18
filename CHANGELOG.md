@@ -4,15 +4,27 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+## [v3.1.0](https://github.com/elixir-nebulex/nebulex_redis_adapter/tree/v3.1.0) (2026-10-18)
+> [Full Changelog](https://github.com/elixir-nebulex/nebulex_redis_adapter/compare/v3.0.0...v3.1.0)
 
 ### Enhancements
 
 - [Nebulex.Adapters.Redis] Added support for externally managed standalone
   Redis connections via `:conn_ref`.
+  [#72](https://github.com/elixir-nebulex/nebulex_redis_adapter/pull/72)
+  ([ananthakumaran](https://github.com/ananthakumaran)).
 - [Nebulex.Adapters.Redis] Implemented the `Nebulex.Adapter.CompositeKV`
-  behaviour, now required by Nebulex core, using the default implementation
-  for `get_and_update`, `update`, `fetch_or_store`, and `get_or_store`.
+  behaviour with the default implementation for `get_and_update`, `update`,
+  `fetch_or_store`, and `get_or_store`. Nebulex 3.1 requires it and checks it
+  at compile time, so the `nebulex` requirement is now `~> 3.1`.
+
+### Bug fixes
+
+- [Nebulex.Adapters.Redis] `ttl/2` now returns the remaining time in
+  milliseconds. It read the value with `PTTL`, which is already in
+  milliseconds, and multiplied it by 1000.
+  [#75](https://github.com/elixir-nebulex/nebulex_redis_adapter/pull/75)
+  ([koichirose](https://github.com/koichirose)).
 
 ## [v3.0.0](https://github.com/elixir-nebulex/nebulex_redis_adapter/tree/v3.0.0) (2026-02-21)
 > [Full Changelog](https://github.com/elixir-nebulex/nebulex_redis_adapter/compare/v3.0.0-rc.2...v3.0.0)
