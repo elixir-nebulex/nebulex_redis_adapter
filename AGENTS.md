@@ -1,72 +1,50 @@
-## Local Scope First (`nebulex_redis_adapter`)
+# Project Rules
 
-This repository is `nebulex_redis_adapter` (the Redis adapter for Nebulex),
-not Nebulex core. When imported Nebulex sections reference missing
-`usage-rules/*.md` paths or Nebulex-core files, treat them as upstream
-guidance and prioritize this repository's local files and modules.
+This repository is `nebulex_redis_adapter`, the Redis adapter for
+[Nebulex](https://github.com/elixir-nebulex/nebulex). The shared rules come
+from the `nebulex` dependency, so run `mix deps.get` first; the `@deps/…`
+files do not exist in a fresh clone. The workflow below says what to read
+for each kind of task; where it says `architecture.md`, read this repo's
+guide (core's applies for context).
 
-### Local Rule Precedence (for this repo)
+@deps/nebulex/usage-rules/workflow.md
 
-When rules conflict, apply them in this order. Items 2–4 refer to the
-rule files referenced via `@deps/…` at the bottom of this file; load
-them as part of session bootstrap.
+@usage-rules/architecture.md
 
-1. This local preface.
-2. `nebulex:workflow`.
-3. `nebulex:nebulex` (as framework guidance).
-4. `nebulex:elixir-style` and `nebulex:elixir`.
+## Running Tests
 
-### Local Key Files
+The tests need the Redis instances from `docker-compose.yml` (standalone,
+Redis Cluster, and client-side cluster). The suite also reuses the shared
+test cases from the Nebulex core repository, which are not part of the Hex
+package; `mix nbx.setup` clones the `main` branch into `./nebulex`, which is
+what CI runs against:
 
-> Keep this list current when modules are added, moved, or removed.
-> A brief one-line description per file is enough.
+```bash
+docker compose up -d
+mix deps.get
+mix nbx.setup
+NEBULEX_PATH=nebulex mix test
+```
 
-- `lib/nebulex/adapters/redis.ex` - Main Redis adapter implementation.
-- `lib/nebulex/adapters/redis/options.ex` - Adapter option definitions/docs.
-- `lib/nebulex/adapters/redis/client.ex` - Redis client abstraction.
-- `lib/nebulex/adapters/redis/connection.ex` - Connection management.
-- `lib/nebulex/adapters/redis/pool.ex` - Connection pooling.
-- `lib/nebulex/adapters/redis/supervisor.ex` - Adapter supervision tree.
-- `lib/nebulex/adapters/redis/cluster.ex` - Redis Cluster mode support.
-- `lib/nebulex/adapters/redis/cluster/` - Cluster internals (config manager, keyslot, pools).
-- `lib/nebulex/adapters/redis/client_side_cluster.ex` - Client-side cluster mode support.
-- `lib/nebulex/adapters/redis/client_side_cluster/` - Client-side cluster internals (hash ring, pools).
-- `lib/nebulex/adapters/redis/serializer.ex` - Serialization behaviour.
-- `lib/nebulex/adapters/redis/helpers.ex` - Shared adapter utilities.
-- `lib/nebulex/adapters/redis/error_formatter.ex` - Error formatting.
-- `test/nebulex/adapters/redis/standalone_test.exs` - Standalone mode tests.
-- `test/nebulex/adapters/redis/cluster_test.exs` - Redis Cluster mode tests.
-- `test/nebulex/adapters/redis/client_side_cluster_test.exs` - Client-side cluster tests.
-- `test/nebulex/adapters/redis/client_test.exs` - Client abstraction tests.
-- `test/shared/` - Shared test cases (cache, queryable, info, command errors).
-- `README.md` - Public usage/configuration for this adapter.
-- `CHANGELOG.md` - Adapter release history.
+To run against another checkout, point `NEBULEX_PATH` at it. Every
+`mix test` and `mix precommit` command in the shared workflow needs the
+`NEBULEX_PATH=nebulex` prefix and the containers running. The
+`cluster_queryable_test` tag is excluded in CI; run those tests locally with
+`--include cluster_queryable_test` when you touch the Redis Cluster queries.
 
 <!-- usage-rules-start -->
-<!-- nebulex:workflow-start -->
-## nebulex:workflow usage
-@deps/nebulex/usage-rules/workflow.md
-<!-- nebulex:workflow-end -->
 <!-- nebulex:nebulex-start -->
 ## nebulex:nebulex usage
-@deps/nebulex/usage-rules/nebulex.md
+[nebulex:nebulex usage rules](deps/nebulex/usage-rules/nebulex.md)
 <!-- nebulex:nebulex-end -->
 <!-- nebulex:elixir-style-start -->
 ## nebulex:elixir-style usage
-@deps/nebulex/usage-rules/elixir-style.md
+[nebulex:elixir-style usage rules](deps/nebulex/usage-rules/elixir-style.md)
 <!-- nebulex:elixir-style-end -->
-<!-- nebulex:elixir-start -->
-## nebulex:elixir usage
-@deps/nebulex/usage-rules/elixir.md
-<!-- nebulex:elixir-end -->
 <!-- usage_rules-start -->
 ## usage_rules usage
 _A config-driven dev tool for Elixir projects to manage AGENTS.md files and agent skills from dependencies_
 
-@deps/usage_rules/usage-rules.md
+[usage_rules usage rules](deps/usage_rules/usage-rules.md)
 <!-- usage_rules-end -->
-<!-- usage_rules:otp-start -->
-## usage_rules:otp usage
-@deps/usage_rules/usage-rules/otp.md
-<!-- usage_rules:otp-end -->
 <!-- usage-rules-end -->
